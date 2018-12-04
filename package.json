@@ -1,0 +1,23 @@
+{
+  "devDependencies": {
+    "chalk": "^2.4.1",
+    "ganache-cli": "^6.1.8",
+    "should": "^13.2.3",
+    "solc": "^0.4.25",
+    "web3": "^1.0.0-beta.36"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "create": "mkdir dist",
+    "compile-all": "npm run compile-deploy && npm run compile-presale && npm run compile-token && npm run compile-treasure",
+    "compile-deploy": "FMT=PRETTY node cli.js contracts/Deploy.sol Deploy > dist/deploy.json",
+    "compile-presale": "FMT=PRETTY node cli.js contracts/Presale.sol Presale > dist/presale.json",
+    "compile-token": "FMT=PRETTY node cli.js contracts/Token.sol Token > dist/token.json",
+    "compile-treasure": "FMT=PRETTY node cli.js contracts/Treasure.sol Treasure > dist/treasure.json",
+    "build": "npm run clean && npm run create && npm run compile-all",
+    "test": "node util/tap-runner.js test/index.spec.js"
+  },
+  "dependencies": {
+    "openzeppelin-solidity": "^2.0.0"
+  }
+}
