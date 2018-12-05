@@ -22,17 +22,17 @@ contract Token is ERC20 {
   // Modifiers
 
   modifier controllerOnly() {
-    require(msg.sender == controller);
+    require(msg.sender == controller, 'controller_access');
     _;
   }
 
   modifier releasedOnly() {
-    require(isReleased);
+    require(isReleased, 'released_only');
     _;
   }
 
   modifier notReleasedOnly() {
-    require(! isReleased);
+    require(! isReleased, 'not_released_only');
     _;
   }
 

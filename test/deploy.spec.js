@@ -1,8 +1,10 @@
 const should = require('should');
 
+const {snapshot, rollback} = require('./util/helpers');
+
 module.exports = ({describe, define, before, after, it}) => {
   describe('Deploy', function() {
-    before(({snapshot}) => snapshot());
+    before(snapshot);
 
     define(async ({accounts, contracts}) => {
       const deploy = await contracts.deploy.deploy()
@@ -11,7 +13,7 @@ module.exports = ({describe, define, before, after, it}) => {
       return {deploy};
     });
 
-    after(({rollback}) => rollback());
+    after(rollback);
 
     describe('#presale()', function() {
       it('Should return presale address', async function({deploy, web3}) {

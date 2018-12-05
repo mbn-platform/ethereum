@@ -1,7 +1,6 @@
 const should = require('should');
 
-const snapshot = (ctx) => ctx.snapshot();
-const rollback = (ctx) => ctx.rollback();
+const {snapshot, rollback} = require('./util/helpers');
 
 module.exports = ({describe, define, before, after, it}) => {
   describe('Token', function() {

@@ -50,8 +50,8 @@ contract Treasure {
     public
     notFinalizedOnly
   {
-    require(_party != address(0));
-    require(status_[_party] == false);
+    require(_party != address(0), 'party_req');
+    require(status_[_party] == false, 'party_not');
 
     status_[_party] = true;
     participants_.push(_party);
@@ -96,9 +96,9 @@ contract Treasure {
     public
     partyOnly
   {
-    require(amounts_[_to] > 0);
-    require(votesStatus_[_to][msg.sender] == true);
-    require(amounts_[_to] == _amount);
+    require(amounts_[_to] > 0, 'amout_req');
+    require(votesStatus_[_to][msg.sender] == true, 'status_ok');
+    require(amounts_[_to] == _amount, 'amout_eq');
 
     votes_[_to] = votes_[_to].sub(1);
     votesStatus_[_to][msg.sender] = false;

@@ -1,4 +1,4 @@
-const {web3, snapshot, rollback} = require('./web3');
+const {web3, evm} = require('./util/web3');
 const sources = {
   Deploy: require('../dist/deploy.json'),
   Presale: require('../dist/presale.json'),
@@ -13,8 +13,7 @@ module.exports = (test) => {
   test.define((async) => {
     return {
       web3,
-      snapshot,
-      rollback,
+      evm,
       toWei: web3.utils.toWei,
       fromWei: web3.utils.fromWei,
       getBalance: (address, units = 'ether') => web3.eth.getBalance(address)
@@ -45,8 +44,8 @@ module.exports = (test) => {
     return {contracts, accounts};
   });
 
-  require('./deploy.spec')(test);
-  // require('./presale.spec')(test);
-  require('./token.spec')(test);
+  // require('./deploy.spec')(test);
+  require('./presale.spec')(test);
+  // require('./token.spec')(test);
   require('./treasure.spec')(test);
 };

@@ -39,13 +39,13 @@ function wordwrap(text, length, prefix, skip = 0) {
   return out.join('\n');
 }
 
-function defaultReporter(item, error) {
+function defaultReporter(item, error, {dir}) {
   const prefix = '  ';
   const {number, path} = item;
 
   let status;
   let title = (item.title || item.type);
-  let location = chalk.gray('# ' + path.join(' / '));
+  let location = chalk.gray('# ' + path.join(' :: '));
   let msg;
 
   if (error) {
@@ -58,13 +58,13 @@ function defaultReporter(item, error) {
         expected: error.assertion.params.expected,
         actual: error.assertion.params.actual,
         location: error.location,
-      });
+      }, {dir});
     }
     else {
       msg = toYamlLike({
         message: error.message,
         location: error.location,
-      });
+      }, {dir});
     }
   }
   else if (item.type === 'case') {
@@ -91,14 +91,15 @@ function escape(value) {
 }
 
 function safeValue(value) {
-    if (! isEscapeable(value)) {
+  const _value = String(value);
+    if (! isEscapeable(_value)) {
       return value;
     }
 
-    return escape(value);
+    return escape(_value);
 }
 
-function toYamlLike(values, {indent = 0} = {}) {
+function toYamlLike(values, {indent = 0, dir} = {}) {
   const keys = Object.getOwnPropertyNames(values);
   const maxLength = keys.reduce((result, key) => Math.max(result, key.length), 0);
   const out = [];
@@ -110,7 +111,7 @@ function toYamlLike(values, {indent = 0} = {}) {
     if (Array.isArray(value)) {
       out.push(`${prefix}${coloredKey}`);
       value.forEach((item) => {
-        if (! item.startsWith('test/')) {
+        if (! item.startsWith(dir + path.sep)) {
           item = chalk.gray(safeValue(item));
         }
         else {
@@ -136,7 +137,7 @@ function createSection(title, path, ctx) {
   };
 }
 
-function createRunner({parentContext = {}, reporter = defaultReporter} = {}) {
+function createRunner({parentContext = {}, reporter = defaultReporter, cwd, dir} = {}) {
   let ctx = Object.create(parentContext);
   let total = 0;
 
@@ -193,7 +194,7 @@ function createRunner({parentContext = {}, reporter = defaultReporter} = {}) {
           path: section.path,
           handler: async () => {
             while(handlers.length) {
-              await handlers.pop()(ctx);
+              await handlers.shift()(ctx);
             }
           },
         });
@@ -221,11 +222,9 @@ function createRunner({parentContext = {}, reporter = defaultReporter} = {}) {
           success += 1;
         }
         if (error) {
-          Error.prepareStackTrace = tapeStackTrace;
           error.stack;
-          Error.prepareStackTrace = prepareStackTrace;
         }
-        reporter(item, error);
+        reporter(item, error, {dir});
     };
 
     const interrupt = (item) => (error) => {
@@ -243,16 +242,17 @@ function createRunner({parentContext = {}, reporter = defaultReporter} = {}) {
     };
 
     const wrappedIt = (item, promise) => {
-      return promise.then(report(item), report(item));//.catch(interrupt);
+      return promise.then(report(item), report(item));
     };
 
-    const cwd = process.cwd();
+    // Overwrite prepareStackTrace
+    Error.prepareStackTrace = tapeStackTrace;
 
     console.log('TAP version 13');
     console.log('1..%s\n', total);
     return walk(section, {
       describe(item, fn) {
-        return fn().catch(interrupt(item));//.catch(interrupt);
+        return fn().catch(interrupt(item));
       },
       define(item ) {
         const {handler, ctx} = item;
@@ -272,6 +272,9 @@ function createRunner({parentContext = {}, reporter = defaultReporter} = {}) {
       },
     })
     .finally(() => {
+      // Restore prepare stack trace
+      Error.prepareStackTrace = prepareStackTrace;
+
       const fail = total - success;
       console.log('');
       console.log('# tests: %s', chalk.bold(total));

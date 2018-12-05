@@ -1,10 +1,12 @@
 const ganache = require('ganache-cli');
 const Web3 = require('web3');
+const dayjs = require('dayjs');
 
 // Create web3 instance
 const provider = ganache.provider({
   total_accounts: 100,
   default_balance_ether: 1000,
+  time: dayjs('1971-01-01').startOf('day').toDate(),
 });
 provider.setMaxListeners(0);
 
@@ -13,42 +15,37 @@ const web3 = new Web3(provider);
 const snapshots = [];
 
 function snapshot() {
-  return new Promise((resolve, reject) => {
-    web3.currentProvider.send({
-      jsonrpc: '2.0',
-      method: 'evm_snapshot',
-      params: [],
-      id: new Date().getTime()
-    }, (err, {result} = {}) => {
-      if (err) {
-        reject(err);
-      }
-      else {
-        snapshots.push(result);
-        resolve();
-      }
-    })
+  return evmCall('evm_snapshot')
+  .then((result) => {
+    snapshots.push(result);
   });
 }
 
 function rollback() {
+  return evmCall('evm_revert', snapshots.pop());
+}
+
+function increaseTime(amount) {
+  return evmCall('evm_increaseTime', amount);
+}
+
+function evmCall(method, ...params) {
   return new Promise((resolve, reject) => {
     web3.currentProvider.send({
       jsonrpc: '2.0',
-      method: 'evm_revert',
-      params: [snapshots.pop()],
+      method,
+      params,
       id: new Date().getTime()
-    }, (err, result) => {
+    }, (err, out) => {
       if (err) {
         reject(err);
       }
       else {
-        resolve();
+        resolve(out.result);
       }
     });
   });
 }
 
 exports.web3 = web3;
-exports.snapshot = snapshot;
-exports.rollback = rollback;
+exports.evm = {snapshot, rollback, increaseTime};

@@ -1,18 +1,17 @@
 const should = require('should');
 
-const snapshot = (ctx) => ctx.snapshot();
-const rollback = (ctx) => ctx.rollback();
+const {snapshot, rollback, ether} = require('./util/helpers');
 
 module.exports = ({describe, define, before, after, it}) => {
   describe('Treasure', function() {
     before(snapshot);
     after(rollback);
 
-    define(async ({toWei, accounts, contracts}) => {
+    define(async ({accounts, contracts}) => {
       const treasure = await contracts.treasure.deploy(3)
       .send({
         from: accounts.main,
-        value: toWei('100', 'ether'),
+        value: ether(100),
       });
 
       const {addParty, finalize} = treasure.methods;
