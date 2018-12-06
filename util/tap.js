@@ -55,8 +55,8 @@ function defaultReporter(item, error, {dir}) {
       msg = toYamlLike({
         message: error.message,
         operator: error.assertion.params.operator,
-        expected: error.assertion.params.expected,
         actual: error.assertion.params.actual,
+        expected: error.assertion.params.expected,
         location: error.location,
       }, {dir});
     }
@@ -137,12 +137,16 @@ function createSection(title, path, ctx) {
   };
 }
 
-function createRunner({parentContext = {}, reporter = defaultReporter, cwd, dir} = {}) {
-  let ctx = Object.create(parentContext);
+function createRunner({
+  context = {},
+  reporter = defaultReporter,
+  cwd,
+  dir,
+} = {}) {
   let total = 0;
 
   return (handler) => {
-    let section = createSection('', [], parentContext);
+    let section = createSection('', [], context);
 
     const levers = {
       describe(title, handler) {
