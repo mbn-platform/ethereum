@@ -87,8 +87,21 @@ contract Token is ERC20 {
     return super.decreaseAllowance(spender, subtractedValue);
   }
 
-  function release() public controllerOnly notReleasedOnly {
+  function release()
+    public
+    controllerOnly
+    notReleasedOnly
+  {
     isReleased = true;
     emit Released();
+  }
+
+  function setController(address _controller)
+    public
+    controllerOnly
+  {
+    require(_controller != address(0), 'controller_req');
+
+    controller = _controller;
   }
 }

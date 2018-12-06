@@ -5,13 +5,13 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 import './Token.sol';
 
-contract Presale {
+contract Distribution {
   using SafeMath for uint256;
 
   uint256 MAX_BONUS = 90;
 
   // ERC20 basic token contract being held
-  Token private token_;
+  Token public token;
 
   // Contract owner address
   address private owner_;
@@ -21,6 +21,8 @@ contract Presale {
   mapping(address => bool) private resellers_;
   // Available to reseller
   mapping(address => uint256) private available_;
+  // Available to reseller
+  mapping(address => uint256) private locked_;
   // Exchange rates
   mapping(uint256 => uint256) rates_;
   // Rate periods
@@ -47,6 +49,7 @@ contract Presale {
 
   constructor(
     address _owner,
+    address _token,
     address _treasure,
     uint256 _releaseTime,
     uint256 _unlockTime,
@@ -55,13 +58,15 @@ contract Presale {
   )
     public
   {
+    require(_token != address(0), 'token_req');
     require(_owner != address(0), 'owner_req');
     require(_treasure != address(0), 'treasure_req');
     require(_releaseTime > block.timestamp, 'timestamp_gt');
-    require(_unlockTime >= _releaseTime, 'unlock_gt');
+    require(_unlockTime >= _releaseTime, 'unlock_gte');
     require(_maxSupply > 0, 'maxSupply_gt');
-    require(_rate > 0);
+    require(_rate > 0, 'rate_gt');
 
+    token = Token(_token);
     owner_ = _owner;
     treasure_ = _treasure;
     releaseTime_ = _releaseTime;
@@ -354,26 +359,6 @@ contract Presale {
     return stagesBonus_[i];
   }
 
-  // Increase balance from ICO Cab address. _receiver is address defined in
-  // the cab as token's beneficiary.
-  function setToken(address _token)
-    public
-    ownerOnly
-  {
-    require(token_ == address(0), 'token_empty');
-    require(_token != address(0), 'token_req');
-
-    token_ = Token(_token);
-  }
-
-  function getToken()
-    public
-    view
-    returns(address)
-  {
-    return token_;
-  }
-
   function getLocksCount(address _to)
     public
     view
@@ -390,13 +375,21 @@ contract Presale {
     return locks_[_to][n];
   }
 
+  function getLockedBalance(address _to)
+    public
+    view
+    returns(uint256)
+  {
+    return locked_[_to];
+  }
+
   // Anyone could call release method if the release date is arrived.
   function releaseToken()
     public
   {
     require(releaseTime_ > block.timestamp, 'release_arrived');
 
-    token_.release();
+    token.release();
   }
 
   function getReleaseTime()
@@ -417,7 +410,7 @@ contract Presale {
 
   // Get next midnight in milliseconds
   function getMidnight()
-      public
+      internal
       view
       returns(uint256)
   {
@@ -440,17 +433,15 @@ contract Presale {
 
     // Send locked bonuses to timelock contract
     if (_locked > 0) {
-      uint256 _lockAmount = _locked.div(2);
-      TokenTimelock lock = new TokenTimelock(token_, _to, unlockTime_);
-      token_.mint(lock, _lockAmount);
-      emit Locked(_to, _lockAmount, lock);
+      TokenTimelock lock = new TokenTimelock(token, _to, unlockTime_);
+      token.mint(lock, _locked);
+      emit Locked(_to, _locked, lock);
       locks_[_to].push(lock);
-
-      _tokens = _tokens.add(_locked.sub(_lockAmount));
+      locked_[_to] = locked_[_to].add(_locked);
     }
 
     if (_tokens > 0) {
-      token_.mint(_to, _tokens);
+      token.mint(_to, _tokens);
       emit Transferred(_to, _tokens);
     }
 

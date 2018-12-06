@@ -1,7 +1,7 @@
 const {web3, evm} = require('./util/web3');
 const sources = {
   Deploy: require('../dist/deploy.json'),
-  Presale: require('../dist/presale.json'),
+  Distribution: require('../dist/distrib.json'),
   Token: require('../dist/token.json'),
   Treasure: require('../dist/treasure.json'),
 };
@@ -10,7 +10,7 @@ const {getContracts, getAccounts} = require('../util/web3');
 const {toWei, fromWei} = web3.utils;
 
 module.exports = (test) => {
-  test.define((async) => {
+  test.define(() => {
     return {
       web3,
       evm,
@@ -21,7 +21,7 @@ module.exports = (test) => {
     };
   });
 
-  test.define(async({web3}) => {
+  test.define(async ({web3}) => {
     accounts = await getAccounts(web3, [
       'main',
       'member1',
@@ -36,7 +36,7 @@ module.exports = (test) => {
 
     contracts = await getContracts(web3, {
       deploy: sources.Deploy,
-      presale: sources.Presale,
+      distribution: sources.Distribution,
       token: sources.Token,
       treasure: sources.Treasure,
     });
@@ -44,8 +44,7 @@ module.exports = (test) => {
     return {contracts, accounts};
   });
 
-  // require('./deploy.spec')(test);
   require('./presale.spec')(test);
-  // require('./token.spec')(test);
+  require('./token.spec')(test);
   require('./treasure.spec')(test);
 };

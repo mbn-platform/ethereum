@@ -8,18 +8,19 @@ module.exports = ({describe, define, before, after, it}) => {
     after(rollback);
 
     define(async ({accounts, contracts}) => {
-      const treasure = await contracts.treasure.deploy(3)
+      const {main} = accounts;
+      const treasure = await contracts.treasure.deploy()
       .send({
-        from: accounts.main,
-        value: ether(100),
+          from: main,
+          value: ether(100),
       });
 
-      const {addParty, finalize} = treasure.methods;
+      const {addVoter, finalize} = treasure.methods;
 
-      await addParty(accounts.member1).send(accounts.main);
-      await addParty(accounts.member2).send(accounts.main);
-      await addParty(accounts.member3).send(accounts.main);
-      await addParty(accounts.member4).send(accounts.main);
+      await addVoter(accounts.member1, 1).send(main);
+      await addVoter(accounts.member2, 1).send(main);
+      await addVoter(accounts.member3, 1).send(main);
+      await addVoter(accounts.member4, 1).send(main);
 
       await finalize().send();
 
@@ -39,17 +40,23 @@ module.exports = ({describe, define, before, after, it}) => {
       );
     });
 
-    describe('#addParty()', () => {
+    describe('#addVoter()', () => {
       it(
         'Should to revert after finalization',
         async ({treasure, accounts}) => {
+          const {user1} = accounts;
+          const {addVoter} = treasure.methods;
+
           let caught = false;
 
           try {
-            await treasure.methods.addParty(accounts.user1).send();
+            await addVoter(user1).send();
           }
           catch (err) {
-            caught = /revert finalized_only/.test(err.message);
+            caught = /revert finalized_neq/.test(err.message);
+            if (! caught) {
+              throw err;
+            }
           }
 
           should(caught).be.True();
@@ -57,18 +64,18 @@ module.exports = ({describe, define, before, after, it}) => {
       );
     });
 
-    describe('#quorum()', () => {
+    describe('#totalVotes()', () => {
       it(
-        'Should return quorum number passed at deploy time',
+        'Should return totalVotes number',
         async ({treasure}) => {
-          const quorum = await treasure.methods.quorum().call();
+          const totalVotes = await treasure.methods.totalVotes().call();
 
-          should(quorum).be.equal('3');
+          should(totalVotes).be.equal('4');
         }
       );
     });
 
-    describe('#initTransfer() and #voteUp', () => {
+    describe('#addProposal() and #vote', () => {
       before(snapshot);
       after(rollback);
 
@@ -76,27 +83,26 @@ module.exports = ({describe, define, before, after, it}) => {
         'Should set one vote at creation',
         async ({toWei, treasure, accounts}) => {
           const {member1, member4} = accounts;
-          const {initTransfer, votesOf} = treasure.methods;
+          const {addProposal, votesOf, powerOf} = treasure.methods;
           const amount = toWei('10', 'ether');
 
-          await initTransfer(member4, amount).send({from:member1});
+          const result = await addProposal(member4, amount).send({from:member1});
 
-          const votes = await votesOf(member4, amount).call();
+          const votes = await votesOf(1).call();
 
           should(votes).be.equal('1');
         }
       );
 
       it(
-        'Should increase votes on voteUp',
+        'Should increase votes on vote',
         async ({toWei, treasure, accounts}) => {
           const {member2, member4} = accounts;
-          const {voteUp, votesOf} = treasure.methods;
-          const amount = toWei('10', 'ether');
+          const {vote, votesOf} = treasure.methods;
 
-          await voteUp(member4, amount).send({from: member2});
+          await vote(1).send({from: member2});
 
-          const votes = await votesOf(member4, amount).call();
+          const votes = await votesOf(1).call();
 
           should(votes).be.equal('2');
         }
@@ -106,15 +112,17 @@ module.exports = ({describe, define, before, after, it}) => {
         'Should transfer when quorum reached',
         async ({toWei, treasure, accounts, getBalance}) => {
           const {member3, member4} = accounts;
-          const {voteUp, votesOf} = treasure.methods;
-          const amount = toWei('10', 'ether');
+          const {vote, votesOf, isCompleted} = treasure.methods;
 
-          await voteUp(member4, amount).send({from:member3});
+          await vote(1).send({from:member3});
 
-          const votes = await votesOf(member4, amount).call();
-          should(votes).be.equal('0');
+          const votes = await votesOf(1).call();
+          should(votes).be.equal('3');
 
-          const balance = await getBalance(accounts.member4);
+          const status = await isCompleted(1).call();
+          should(status).be.True();
+
+          const balance = await getBalance(member4);
           should(balance).be.equal('1010');
         }
       );

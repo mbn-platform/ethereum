@@ -3,22 +3,20 @@ pragma solidity ^0.4.24;
 import 'openzeppelin-solidity/contracts/math/Math.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
-import './Presale.sol';
+import './Distribution.sol';
 
 contract Reseller {
   using Math for uint256;
   using SafeMath for uint256;
 
-  // Token
-  Presale public presale;
+  // Token distribution
+  Distribution public presale;
   // Contract owner
   address private owner_;
   // Accounts' total balances
   mapping(address => uint256) private balances_;
   // Bonuses received from referrals
   mapping(address => uint256) private bonuses_;
-  // Bonuses received from referrals
-  mapping(address => uint256) private extraBonusSizes_;
   // Incomes per user
   mapping(address => uint256[]) private incomes_;
   // Income dates per user
@@ -39,7 +37,7 @@ contract Reseller {
     require(_presale != address(0), 'presale_req');
     require(_owner != address(0), 'owner_req');
 
-    presale = Presale(_presale);
+    presale = Distribution(_presale);
     owner_ = _owner;
   }
 
@@ -70,12 +68,13 @@ contract Reseller {
     _receiver.transfer(balance);
   }
 
-  function transfer(address _from, address _to, address _ref)
+  function transfer(address _from, address _to, address _ref, uint256 _extraBonus)
     public
     ownerOnly
   {
     require(_from != address(0), 'from_req');
     require(_to != address(0), 'to_req');
+    require(_extraBonus <= MAX_EXTRA_BONUS, 'extraBonus');
 
     uint256 balance = balances_[_from];
 
@@ -85,15 +84,13 @@ contract Reseller {
     uint256 bonus = bonuses_[_from];
     // Beneficiar's bonus
     uint256 refBonus = 0;
-    // Get receivers extra bonus
-    uint256 extraBonus = extraBonusSizes_[_to];
     // Extra bonus
     bool hasRef = _ref != address(0);
 
     for (uint256 i = allowedIncome_[_from]; i < getIncomesLength(_from); i++) {
       uint256 period = getPeriodByIndex(_from, i);
       (tokens, bonus, refBonus) = _calculatePeriod(
-        period, getIncomeByIndex(_from, i), extraBonus, tokens, bonus, refBonus, hasRef
+        period, getIncomeByIndex(_from, i), _extraBonus, tokens, bonus, refBonus, hasRef
       );
     }
 
@@ -102,10 +99,16 @@ contract Reseller {
       bonuses_[_ref] = bonuses_[_ref].add(refBonus);
     }
 
-    balances_[_ref] = 0;
-    /* require( */
-      presale.transferTokens.value(balance)(_from, tokens, bonus)
-    ;
+    balances_[_from] = 0;
+    _transferTokens(_to, balance, tokens, bonus);
+  }
+
+  function _transferTokens(address _to, uint256 _value, uint256 _tokens, uint256 _bonus)
+    internal
+  {
+    uint256 half = _bonus / 2;
+
+    presale.transferTokens.value(_value)(_to, _tokens + half, _bonus - half);
   }
 
   function _calculatePeriod(
@@ -134,16 +137,6 @@ contract Reseller {
     }
 
     return (tokens, bonus, refBonus);
-  }
-
-  function setBonusSize(address _receiver, uint256 size)
-    public
-    ownerOnly
-  {
-    require(_receiver != address(0), 'receiver_req');
-    require(size <= MAX_EXTRA_BONUS, 'size_lte');
-
-    extraBonusSizes_[_receiver] = size;
   }
 
   function getPresaleStage(uint256 _period)

@@ -9,9 +9,8 @@
   "scripts": {
     "clean": "rm -rf dist",
     "create": "mkdir dist",
-    "compile-all": "npm run compile-deploy && npm run compile-presale && npm run compile-token && npm run compile-treasure",
-    "compile-deploy": "FMT=PRETTY node cli.js contracts/Deploy.sol Deploy > dist/deploy.json",
-    "compile-presale": "FMT=PRETTY node cli.js contracts/Presale.sol Presale > dist/presale.json",
+    "compile-all": "npm run compile-distrib && npm run compile-reseller && npm run compile-token && npm run compile-treasure",
+    "compile-distrib": "FMT=PRETTY node cli.js contracts/Distribution.sol Distribution > dist/distrib.json",
     "compile-token": "FMT=PRETTY node cli.js contracts/Token.sol Token > dist/token.json",
     "compile-treasure": "FMT=PRETTY node cli.js contracts/Treasure.sol Treasure > dist/treasure.json",
     "compile-reseller": "FMT=PRETTY node cli.js contracts/Reseller.sol Reseller > dist/reseller.json",

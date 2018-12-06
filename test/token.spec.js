@@ -34,22 +34,14 @@ module.exports = ({describe, define, before, after, it}) => {
           should(after).be.equal(true);
         }
       );
-
-      it(
-        'Should return true after release',
-        async ({token, accounts}) => {
-          const {isReleased} = token.methods;
-
-          const result = await isReleased().call();
-
-          should(result).be.equal(false);
-        }
-      );
     });
 
     describe('#mint()', () => {
+      before(snapshot);
+      after(rollback);
+
       it(
-        'Should increase total supply',
+        'Should increase balanceOf',
         async ({token, accounts}) => {
           const {main, member1} = accounts;
           const {mint, balanceOf} = token.methods;
@@ -58,6 +50,19 @@ module.exports = ({describe, define, before, after, it}) => {
           const balance = await balanceOf(member1).call();
 
           should(balance).be.equal('10');
+        }
+      );
+
+      it(
+        'Should increase total supply',
+        async ({token, accounts}) => {
+          const {main, member1} = accounts;
+          const {mint, totalSupply} = token.methods;
+
+          await mint(member1, '10').send(main);
+          const balance = await totalSupply().call();
+
+          should(balance).be.equal('20');
         }
       );
     });
