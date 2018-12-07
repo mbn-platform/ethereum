@@ -58,8 +58,8 @@ contract Distribution {
   )
     public
   {
-    require(_token != address(0), 'token_req');
     require(_owner != address(0), 'owner_req');
+    require(_token != address(0), 'token_req');
     require(_treasure != address(0), 'treasure_req');
     require(_releaseTime > block.timestamp, 'timestamp_gt');
     require(_unlockTime >= _releaseTime, 'unlock_gte');
@@ -186,7 +186,6 @@ contract Distribution {
 
   function _setRate(uint256 _rate, uint256 _time)
     internal
-    ownerOnly
   {
     require(_rate > 0, 'rate_gt');
     if (ratePeriods_.length > 0) {

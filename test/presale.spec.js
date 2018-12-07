@@ -18,8 +18,8 @@ module.exports = ({describe, define, before, after, it}) => {
       .send(main);
 
       const distribution = await contracts.distribution.deploy(
-        token.options.address,
         main,
+        token.options.address,
         main,
         releaseTime.unix().toString(),
         unlockTime.unix().toString(),

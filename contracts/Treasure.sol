@@ -40,6 +40,8 @@ contract Treasure is Votable {
     return n;
   }
 
+  /// Determine if proposal still votable or not. In treasurer proposals
+  /// has no any limitation thus each vote is votable until it completes.
   function isVotable(uint256)
     internal
     view

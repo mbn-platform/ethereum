@@ -9,7 +9,7 @@ module.exports = ({describe, define, before, after, it}) => {
 
     define(async ({accounts, contracts}) => {
       const {main} = accounts;
-      const treasure = await contracts.treasure.deploy()
+      const treasure = await contracts.treasure.deploy(main)
       .send({
           from: main,
           value: ether(100),
@@ -21,8 +21,6 @@ module.exports = ({describe, define, before, after, it}) => {
       await addVoter(accounts.member2, 1).send(main);
       await addVoter(accounts.member3, 1).send(main);
       await addVoter(accounts.member4, 1).send(main);
-
-      await finalize().send();
 
       return {
         treasure,
@@ -41,25 +39,38 @@ module.exports = ({describe, define, before, after, it}) => {
     });
 
     describe('#addVoter()', () => {
+      before(snapshot);
+      after(rollback);
+
       it(
-        'Should to revert after finalization',
+        'Should add voters',
         async ({treasure, accounts}) => {
-          const {user1} = accounts;
-          const {addVoter} = treasure.methods;
+          const {main, user1} = accounts;
+          const {addVoter, powerOf} = treasure.methods;
 
-          let caught = false;
+          const before = await powerOf(user1).call();
+          should(before).be.equal('0');
 
-          try {
-            await addVoter(user1).send();
-          }
-          catch (err) {
-            caught = /revert finalized_neq/.test(err.message);
-            if (! caught) {
-              throw err;
-            }
-          }
+          await addVoter(user1).send(main);
 
-          should(caught).be.True();
+          const after = await powerOf(user1).call();
+          should(after).be.equal('1');
+        }
+      );
+
+      it(
+        'Should set custom votes power',
+        async ({treasure, accounts}) => {
+          const {main, user2} = accounts;
+          const {addVoter, powerOf} = treasure.methods;
+
+          const before = await powerOf(user2).call();
+          should(before).be.equal('0');
+
+          await addVoter(user2, 100).send(main);
+
+          const after = await powerOf(user2).call();
+          should(after).be.equal('100');
         }
       );
     });

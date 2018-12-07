@@ -1,6 +1,5 @@
 const {web3, evm} = require('./util/web3');
 const sources = {
-  Deploy: require('../dist/deploy.json'),
   Distribution: require('../dist/distrib.json'),
   Token: require('../dist/token.json'),
   Treasure: require('../dist/treasure.json'),
@@ -35,7 +34,6 @@ module.exports = (test) => {
     ]);
 
     contracts = await getContracts(web3, {
-      deploy: sources.Deploy,
       distribution: sources.Distribution,
       token: sources.Token,
       treasure: sources.Treasure,
