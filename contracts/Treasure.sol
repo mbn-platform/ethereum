@@ -10,9 +10,10 @@ contract Treasure is Votable {
 
   Proposal[] public proposals;
 
-  constructor()
+  constructor(address _owner)
     public
     payable
+    Votable(_owner)
   {}
 
   // Fallback

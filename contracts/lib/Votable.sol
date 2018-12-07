@@ -5,7 +5,7 @@ import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 contract Votable {
   using SafeMath for uint256;
 
-  bool private isFinalized_;
+  address owner;
 
   uint256 public totalVotes;
 
@@ -15,19 +15,25 @@ contract Votable {
   mapping(uint256 => bool) private completed_;
   mapping(uint256 => mapping(address => bool)) private status_;
 
+  constructor(address _owner)
+    internal
+  {
+    owner = _owner;
+  }
+
   // Events
   event ProposalAdded(address voter, uint256 number);
   event VotesAdded(address voter, uint256 number, uint256 votes);
   event VotesRevoked(address voter, uint256 number, uint256 votes);
 
   // Modifiers
-  modifier voterOnly() {
-    require(voters_[msg.sender] > 0, 'voter_only');
+  modifier ownerOnly() {
+    require(msg.sender == owner, 'owner_access');
     _;
   }
 
-  modifier notFinalizedOnly() {
-    require(isFinalized_ != true, 'finalized_neq');
+  modifier voterOnly() {
+    require(voters_[msg.sender] > 0, 'voter_access');
     _;
   }
 
@@ -39,23 +45,24 @@ contract Votable {
     _;
   }
 
-  function finalize()
+  function setOwner(address _owner)
     public
+    ownerOnly
   {
-    isFinalized_ = true;
+    owner = _owner;
   }
 
   // Methods
   function addVoter(address _voter)
     public
-    notFinalizedOnly
+    ownerOnly
   {
     addVoter(_voter, 1);
   }
 
   function addVoter(address _voter, uint256 _votes)
     public
-    notFinalizedOnly
+    ownerOnly
   {
     require(_voter != address(0), 'voter_req');
     require(voters_[_voter] == 0, 'exists_not');
@@ -63,6 +70,17 @@ contract Votable {
 
     voters_[_voter] = _votes;
     totalVotes = totalVotes.add(_votes);
+  }
+
+  function removeVoter(address _voter)
+    public
+    ownerOnly
+  {
+    require(_voter != address(0), 'voter_req');
+    require(voters_[_voter] != 0, 'exists_not');
+
+    totalVotes = totalVotes.sub(_votes[_voter]);
+    voters_[_voter] = 0;
   }
 
   function initVoting(uint256 _n)
