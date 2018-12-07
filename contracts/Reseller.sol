@@ -146,9 +146,7 @@ contract Reseller {
   {
     (uint256 stage, bool exists) = presale.getStageByTime(_period);
 
-    if (! exists) {
-      revert('stage_missing');
-    }
+    require(exists, 'stage_missing');
 
     return stage;
   }
