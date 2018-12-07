@@ -187,7 +187,6 @@ contract Distribution {
   function _setRate(uint256 _rate, uint256 _time)
     internal
   {
-    require(_rate > 0, 'rate_gt');
     if (ratePeriods_.length > 0) {
       require(_time > ratePeriods_[ratePeriods_.length - 1], 'time_gt');
     }
@@ -259,7 +258,7 @@ contract Distribution {
   }
 
   function getActiveStageIndex()
-    internal
+    public
     view
     returns(uint256,bool)
   {
