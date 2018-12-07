@@ -79,7 +79,7 @@ contract Votable {
     require(_voter != address(0), 'voter_req');
     require(voters_[_voter] != 0, 'exists_not');
 
-    totalVotes = totalVotes.sub(_votes[_voter]);
+    totalVotes = totalVotes.sub(voters_[_voter]);
     voters_[_voter] = 0;
   }
 
