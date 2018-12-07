@@ -68,7 +68,7 @@ contract Reseller {
     _receiver.transfer(balance);
   }
 
-  function transfer(address _from, address _to, address _ref, uint256 _extraBonus)
+  function transferTokens(address _from, address _to, address _ref, uint256 _extraBonus)
     public
     ownerOnly
   {
