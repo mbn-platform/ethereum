@@ -16,6 +16,11 @@ createRunner({
     require(path.resolve(file))(test);
   }
 })
+.then(({total, pass}) => {
+  if (total > pass) {
+    process.exit(1);
+  }
+})
 .catch(error => {
   console.error(error);
   process.exit(1);

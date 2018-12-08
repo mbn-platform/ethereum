@@ -220,10 +220,10 @@ function createRunner({
       return string;
     };
 
-    let success = 0;
+    let pass = 0;
     const report = (item) => (error) => {
         if (item.type === 'case' && ! error) {
-          success += 1;
+          pass += 1;
         }
         if (error) {
           error.stack;
@@ -279,13 +279,14 @@ function createRunner({
       // Restore prepare stack trace
       Error.prepareStackTrace = prepareStackTrace;
 
-      const fail = total - success;
+      const fail = total - pass;
       console.log('');
       console.log('# tests: %s', chalk.bold(total));
-      console.log('# pass: %s', chalk.bold(success));
+      console.log('# pass: %s', chalk.bold(pass));
       console.log('# fail: %s', chalk.bold(fail));
-      console.log('# rate: %s %', chalk.bold((success / total * 100).toFixed(2)));
-    });
+      console.log('# rate: %s %', chalk.bold((pass / total * 100).toFixed(2)));
+    })
+    .then(() => ({total, pass}));
   };
 }
 
