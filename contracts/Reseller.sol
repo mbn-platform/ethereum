@@ -100,7 +100,8 @@ contract Reseller {
     }
 
     balances_[_from] = 0;
-    
+    bonuses[_from] = 0;
+
     _transferTokens(_to, balance, tokens, bonus);
   }
 
