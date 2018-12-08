@@ -8,7 +8,7 @@ contract Treasure is Votable {
     uint256 amount;
   }
 
-  Proposal[] public proposals;
+  Proposal[] private proposals_;
 
   constructor(address _owner)
     public
@@ -33,8 +33,8 @@ contract Treasure is Votable {
     voterOnly
     returns(uint256)
   {
-    proposals.push(Proposal(_to, _amount));
-    uint256 n = proposals.length;
+    proposals_.push(Proposal(_to, _amount));
+    uint256 n = proposals_.length;
 
     initVoting(n);
     return n;
@@ -50,18 +50,19 @@ contract Treasure is Votable {
     return true;
   }
 
-  function isAccepted(uint256, uint256 _votes)
+  function isAccepted(uint256, uint256 _votes, uint256 _totalVotes)
     internal
     view
     returns(bool)
   {
-    return _votes >= totalVotes / 2 + 1;
+    return _votes >= _totalVotes / 2 + 1;
   }
 
   function proposalAccepted(uint256 _n)
     internal
   {
-    Proposal storage proposal = proposals[_n - 1];
+    Proposal storage proposal = proposals_[_n - 1];
+    require(proposal.amount < address(this).balance, 'amount_enough');
 
     proposal.to.transfer(proposal.amount);
 

@@ -22,14 +22,14 @@ function snapshot() {
 }
 
 function rollback() {
-  return evmCall('evm_revert', snapshots.pop());
+  return evmCall('evm_revert', [snapshots.pop()]);
 }
 
 function increaseTime(amount) {
-  return evmCall('evm_increaseTime', amount);
+  return evmCall('evm_increaseTime', [amount]);
 }
 
-function evmCall(method, ...params) {
+function evmCall(method, params = []) {
   return new Promise((resolve, reject) => {
     web3.currentProvider.send({
       jsonrpc: '2.0',

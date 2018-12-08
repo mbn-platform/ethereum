@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity 0.4.25;
 
 import 'openzeppelin-solidity/contracts/math/Math.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
@@ -68,7 +68,7 @@ contract Reseller {
     _receiver.transfer(balance);
   }
 
-  function transferTokens(address _from, address _to, address _ref, uint256 _extraBonus)
+  function transferToken(address _from, address _to, address _ref, uint256 _extraBonus)
     public
     ownerOnly
   {
@@ -100,7 +100,6 @@ contract Reseller {
     }
 
     balances_[_from] = 0;
-    bonuses[_from] = 0;
 
     _transferTokens(_to, balance, tokens, bonus);
   }

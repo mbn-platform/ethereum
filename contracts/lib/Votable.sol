@@ -7,13 +7,13 @@ contract Votable {
 
   address owner;
 
-  uint256 public totalVotes;
+  uint256 public totalPower;
 
   uint256 public lastProposal;
-  mapping(address => uint256) voters_;
+  mapping(address => uint256) votePower_;
   mapping(uint256 => uint256) private votes_;
   mapping(uint256 => bool) private completed_;
-  mapping(uint256 => mapping(address => bool)) private status_;
+  mapping(uint256 => mapping(address => uint256)) private givenVotes_;
 
   constructor(address _owner)
     internal
@@ -33,7 +33,7 @@ contract Votable {
   }
 
   modifier voterOnly() {
-    require(voters_[msg.sender] > 0, 'voter_access');
+    require(votePower_[msg.sender] > 0, 'voter_access');
     _;
   }
 
@@ -65,11 +65,11 @@ contract Votable {
     ownerOnly
   {
     require(_voter != address(0), 'voter_req');
-    require(voters_[_voter] == 0, 'exists_not');
+    require(votePower_[_voter] == 0, 'exists_not');
     require(_votes > 0, 'votes_gt');
 
-    voters_[_voter] = _votes;
-    totalVotes = totalVotes.add(_votes);
+    votePower_[_voter] = _votes;
+    totalPower = totalPower.add(_votes);
   }
 
   function removeVoter(address _voter)
@@ -77,10 +77,10 @@ contract Votable {
     ownerOnly
   {
     require(_voter != address(0), 'voter_req');
-    require(voters_[_voter] != 0, 'exists_not');
+    require(votePower_[_voter] != 0, 'exists_not');
 
-    totalVotes = totalVotes.sub(voters_[_voter]);
-    voters_[_voter] = 0;
+    totalPower = totalPower.sub(votePower_[_voter]);
+    votePower_[_voter] = 0;
   }
 
   function initVoting(uint256 _n)
@@ -89,13 +89,10 @@ contract Votable {
     require(_n > lastProposal, 'n_gt');
     require(votes_[_n] == 0, 'votes_eq');
 
-    uint256 votes = voters_[msg.sender];
-    status_[_n][msg.sender] = true;
-    votes_[_n] = votes_[_n].add(votes);
     lastProposal = _n;
 
     emit ProposalAdded(msg.sender, _n);
-    emit VotesAdded(msg.sender, _n, votes);
+    _vote(_n);
   }
 
   function vote(uint256 _n)
@@ -103,19 +100,25 @@ contract Votable {
     voterOnly
     votable(_n)
   {
-    require(status_[_n][msg.sender] == false, 'status_eq');
+    require(givenVotes_[_n][msg.sender] == 0, 'givenVotes_eq');
+    require(completed_[_n] == false);
 
-    uint votes = voters_[msg.sender];
+    _vote(_n);
+  }
+
+  function _vote(uint256 _n)
+    internal
+  {
+    uint votes = votePower_[msg.sender];
     votes_[_n] = votes_[_n].add(votes);
 
     emit VotesAdded(msg.sender, _n, votes);
 
-    if (isAccepted(_n, votes_[_n])) {
+    givenVotes_[_n][msg.sender] = votes;
+
+    if (isAccepted(_n, votes_[_n], totalPower)) {
       completed_[_n] = true;
       proposalAccepted(_n);
-    }
-    else {
-      status_[_n][msg.sender] = true;
     }
   }
 
@@ -123,11 +126,11 @@ contract Votable {
     public
     voterOnly
   {
-    require(status_[_n][msg.sender] == true, 'status_ok');
+    require(givenVotes_[_n][msg.sender] > 0, 'givenVotes_ok');
 
-    uint votes = voters_[msg.sender];
+    uint votes = givenVotes_[_n][msg.sender];
     votes_[_n] = votes_[_n].sub(votes);
-    status_[_n][msg.sender] = false;
+    givenVotes_[_n][msg.sender] = 0;
 
     emit VotesRevoked(msg.sender, _n, votes);
   }
@@ -153,7 +156,7 @@ contract Votable {
     view
     returns(uint256)
   {
-    return voters_[_voter];
+    return votePower_[_voter];
   }
 
   function proposalAccepted(uint256 _n) internal;
@@ -163,7 +166,7 @@ contract Votable {
   view
   returns(bool);
 
-  function isAccepted(uint256 _n, uint256 _votes)
+  function isAccepted(uint256 _n, uint256 _votes, uint256 _totalPower)
     internal
     view
     returns(bool);

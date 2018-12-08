@@ -38,7 +38,7 @@ module.exports = ({describe, define, before, after, it}) => {
       );
     });
 
-    describe('#addVoter()', () => {
+    describe('#addVoter() && #removeVoter())', () => {
       before(snapshot);
       after(rollback);
 
@@ -62,7 +62,7 @@ module.exports = ({describe, define, before, after, it}) => {
         'Should set custom votes power',
         async ({treasure, accounts}) => {
           const {main, user2} = accounts;
-          const {addVoter, powerOf} = treasure.methods;
+          const {addVoter, powerOf, totalPower} = treasure.methods;
 
           const before = await powerOf(user2).call();
           should(before).be.equal('0');
@@ -71,17 +71,38 @@ module.exports = ({describe, define, before, after, it}) => {
 
           const after = await powerOf(user2).call();
           should(after).be.equal('100');
+
+          const total = await totalPower().call();
+          should(total).be.equal('105');
+        }
+      );
+
+      it(
+        'Should remove votes power',
+        async ({treasure, accounts}) => {
+          const {main, user2} = accounts;
+          const {removeVoter, powerOf, totalPower} = treasure.methods;
+
+          const before = await powerOf(user2).call();
+          should(before).be.equal('100');
+
+          await removeVoter(user2).send(main);
+
+          const after = await powerOf(user2).call();
+          should(after).be.equal('0');
+
+          const total = await totalPower().call();
+          should(total).be.equal('5');
         }
       );
     });
 
-    describe('#totalVotes()', () => {
+    describe('#totalPower()', () => {
       it(
-        'Should return totalVotes number',
+        'Should return totalPower number',
         async ({treasure}) => {
-          const totalVotes = await treasure.methods.totalVotes().call();
-
-          should(totalVotes).be.equal('4');
+          const totalPower = await treasure.methods.totalPower().call();
+          should(totalPower).be.equal('4');
         }
       );
     });
@@ -94,7 +115,7 @@ module.exports = ({describe, define, before, after, it}) => {
         'Should set one vote at creation',
         async ({toWei, treasure, accounts}) => {
           const {member1, member4} = accounts;
-          const {addProposal, votesOf, powerOf} = treasure.methods;
+          const {addProposal, votesOf, lastProposal, totalPower, powerOf} = treasure.methods;
           const amount = toWei('10', 'ether');
 
           const result = await addProposal(member4, amount).send({from:member1});
@@ -123,7 +144,7 @@ module.exports = ({describe, define, before, after, it}) => {
         'Should transfer when quorum reached',
         async ({toWei, treasure, accounts, getBalance}) => {
           const {member3, member4} = accounts;
-          const {vote, votesOf, isCompleted} = treasure.methods;
+          const {vote, votesOf, powerOf, totalPower, isCompleted} = treasure.methods;
 
           await vote(1).send({from:member3});
 

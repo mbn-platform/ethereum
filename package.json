@@ -1,11 +1,12 @@
 {
   "devDependencies": {
     "chalk": "^2.4.1",
-    "ganache-cli": "^6.1.8",
+    "dayjs": "^1.7.7",
+    "ganache-cli": "^6.2.3",
     "husky": "^1.2.0",
     "should": "^13.2.3",
     "solc": "^0.4.25",
-    "web3": "^1.0.0-beta.36"
+    "web3": "^1.0.0-beta.37"
   },
   "scripts": {
     "clean": "rm -rf dist",
@@ -19,7 +20,6 @@
     "test": "node util/tap-runner.js test/index.spec.js"
   },
   "dependencies": {
-    "dayjs": "^1.7.7",
     "openzeppelin-solidity": "^2.0.0"
   },
   "husky": {

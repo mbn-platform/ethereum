@@ -1,10 +1,10 @@
 const should = require('should');
 const dayjs = require('dayjs');
 
-const {snapshot, rollback, ether} = require('./util/helpers');
+const {snapshot, rollback, wrap, ether} = require('./util/helpers');
 
 module.exports = ({describe, define, before, after, it}) => {
-  describe('Presale', function() {
+  describe('Distribution', function() {
     before(snapshot);
     after(rollback);
 
@@ -172,8 +172,7 @@ module.exports = ({describe, define, before, after, it}) => {
     describe('#transferTokens()', () => {
       it(
         'Should transfer tokens to Token contract',
-        snapshot,
-        async ({accounts, distribution, token, web3}) => {
+        wrap(async ({accounts, distribution, token, web3}) => {
           const {main, member1, user1} = accounts;
           const {transferTokens, getLockedBalance} = distribution.methods;
           const {balanceOf} = token.methods;
@@ -193,21 +192,17 @@ module.exports = ({describe, define, before, after, it}) => {
 
           const locked = await getLockedBalance(user1).call();
           should(locked).be.equal('2');
-        },
-        rollback
+        })
       );
 
       it(
         'Should decrease avaiable for reseller tokens count',
-        snapshot,
-        async ({accounts, distribution, token, web3}) => {
+        wrap(async ({accounts, distribution, token, web3}) => {
           const {main, member1, user1} = accounts;
           const {transferTokens, getAvailable} = distribution.methods;
 
           const availableBefore = await getAvailable(member1).call();
           should(availableBefore).be.equal('5');
-
-          const balanceBefore = await web3.eth.getBalance(main);
 
           await transferTokens(user1, 1, 2).send({
             from: member1,
@@ -216,14 +211,12 @@ module.exports = ({describe, define, before, after, it}) => {
 
           const availableAfter = await getAvailable(member1).call();
           should(availableAfter).be.equal('2');
-        },
-        rollback
+        })
       );
 
       it(
         'Should transfer ethers to Treasurer',
-        snapshot,
-        async ({accounts, distribution, token, web3}) => {
+        wrap(async ({accounts, distribution, token, web3}) => {
           const {main, member1, user1} = accounts;
           const {transferTokens} = distribution.methods;
 
@@ -236,14 +229,12 @@ module.exports = ({describe, define, before, after, it}) => {
 
           const balanceAfter = await web3.eth.getBalance(main);
           should(balanceAfter - balanceBefore + '').be.equal(ether(10));
-        },
-        rollback
+        })
       );
 
       it(
         'Should change locks count',
-        snapshot,
-        async ({accounts, distribution, token, web3}) => {
+        wrap(async ({accounts, distribution, token, web3}) => {
           const {main, member1, user1} = accounts;
           const {transferTokens, getAvailable, getLocksCount} = distribution.methods;
           const {balanceOf} = token.methods;
@@ -258,8 +249,7 @@ module.exports = ({describe, define, before, after, it}) => {
 
           const locksAfter = await getLocksCount(user1).call();
           should(locksAfter).be.equal('1');
-        },
-        rollback
+        })
       );
     });
   });

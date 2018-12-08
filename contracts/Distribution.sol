@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity 0.4.25;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/TokenTimelock.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
@@ -105,7 +105,7 @@ contract Distribution {
     public
     ownerOnly
   {
-    require(_reseller != address(0), 'tonull');
+    require(_reseller != address(0), 'to_req');
     require(resellers_[_reseller] == false, 'exists');
 
     resellers_[_reseller] = true;
@@ -120,7 +120,7 @@ contract Distribution {
     public
     ownerOnly
   {
-    require(_reseller != address(0), 'tonull');
+    require(_reseller != address(0), 'to_req');
     require(resellers_[_reseller] == true, 'not_exists');
 
     resellers_[_reseller] = false;
@@ -417,6 +417,14 @@ contract Distribution {
       return tomorrow - remain;
   }
 
+  function balanceOf(address _receiver)
+    public
+    view
+    returns(uint256)
+  {
+    return token.balanceOf(_receiver).add(locked_[_receiver]);
+  }
+
   function transferTokens(address _to, uint256 _tokens, uint256 _locked)
     public
     resellerOnly
@@ -424,18 +432,19 @@ contract Distribution {
   {
     uint256 amount = _tokens.add(_locked);
 
-    require(_to != address(0), 'tonull');
+    require(_to != address(0), 'to_req');
     require(amount <= available_[msg.sender], 'not_available');
 
     treasure_.transfer(msg.value);
 
     // Send locked bonuses to timelock contract
     if (_locked > 0) {
-      TokenTimelock lock = new TokenTimelock(token, _to, unlockTime_);
+      address lock = address(new TokenTimelock(token, _to, unlockTime_));
       token.mint(lock, _locked);
-      emit Locked(_to, _locked, lock);
       locks_[_to].push(lock);
       locked_[_to] = locked_[_to].add(_locked);
+
+      emit Locked(_to, _locked, lock);
     }
 
     if (_tokens > 0) {

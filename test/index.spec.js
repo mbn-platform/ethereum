@@ -42,7 +42,7 @@ module.exports = (test) => {
     return {contracts, accounts};
   });
 
-  require('./presale.spec')(test);
-  require('./token.spec')(test);
-  require('./treasure.spec')(test);
+  require('./distribution.spec')(test);
+  // require('./token.spec')(test);
+  // require('./treasure.spec')(test);
 };
