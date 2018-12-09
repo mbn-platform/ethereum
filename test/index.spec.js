@@ -3,6 +3,7 @@ const sources = {
   Distribution: require('../dist/distrib.json'),
   Token: require('../dist/token.json'),
   Treasure: require('../dist/treasure.json'),
+  Reseller: require('../dist/reseller.json'),
 };
 const {getContracts, getAccounts} = require('../util/web3');
 
@@ -37,6 +38,7 @@ module.exports = (test) => {
       distribution: sources.Distribution,
       token: sources.Token,
       treasure: sources.Treasure,
+      reseller: sources.Reseller,
     });
 
     return {contracts, accounts};
@@ -45,4 +47,5 @@ module.exports = (test) => {
   require('./distribution.spec')(test);
   require('./token.spec')(test);
   require('./treasure.spec')(test);
+  require('./reseller.spec')(test);
 };

@@ -425,17 +425,20 @@ contract Distribution {
     return token.balanceOf(_receiver).add(locked_[_receiver]);
   }
 
+  event Log(string label);
+
   function transferTokens(address _to, uint256 _tokens, uint256 _locked)
     public
     resellerOnly
     payable
+    returns(uint256)
   {
     uint256 amount = _tokens.add(_locked);
 
     require(_to != address(0), 'to_req');
     require(amount <= available_[msg.sender], 'not_available');
 
-    treasure_.transfer(msg.value);
+    require(treasure_.send(msg.value), 'transfer');
 
     // Send locked bonuses to timelock contract
     if (_locked > 0) {
@@ -453,5 +456,6 @@ contract Distribution {
     }
 
     available_[msg.sender] = available_[msg.sender].sub(amount);
+    return amount;
   }
 }

@@ -5,6 +5,7 @@ const {snapshot, rollback} = require('./util/helpers');
 module.exports = ({describe, define, before, after, it}) => {
   describe('Token', function() {
     before(snapshot);
+    after(rollback);
 
     define(async ({accounts, contracts}) => {
       const token = await contracts.token.deploy(accounts.main)
@@ -13,7 +14,6 @@ module.exports = ({describe, define, before, after, it}) => {
       return {token};
     });
 
-    after(rollback);
 
     describe('#release()', () => {
       before(snapshot);
