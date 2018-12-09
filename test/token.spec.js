@@ -1,6 +1,6 @@
 const should = require('should');
 
-const {snapshot, rollback} = require('./util/helpers');
+const {snapshot, rollback, throws} = require('./util/helpers');
 
 module.exports = ({describe, define, before, after, it}) => {
   describe('Token', function() {
@@ -62,6 +62,24 @@ module.exports = ({describe, define, before, after, it}) => {
 
           const after = await isReleased().call();
           should(after).be.equal(true);
+        }
+      );
+
+      it(
+        'Should deprecate minting',
+        async ({token, accounts}) => {
+          const {main, member1} = accounts;
+          const {isReleased, release, mint} = token.methods;
+
+          const before = await isReleased().call();
+          should(before).be.equal(true);
+
+          const caught = await throws(
+            /not_released_only/,
+            () => mint(member1, 1).send({from:main})
+          );
+
+          should(caught).be.equal(true);
         }
       );
     });
