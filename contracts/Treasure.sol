@@ -28,7 +28,7 @@ contract Treasure is Votable {
   event Transferred(address receiver, uint256 amount);
 
   // Methodds
-  function addProposal(address _to, uint256 _amount)
+  function proposeTransfer(address _to, uint256 _amount)
     public
     voterOnly
     returns(uint256)

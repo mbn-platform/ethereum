@@ -107,7 +107,7 @@ module.exports = ({describe, define, before, after, it}) => {
       );
     });
 
-    describe('#addProposal() and #vote', () => {
+    describe('#proposeTransfer() and #vote', () => {
       before(snapshot);
       after(rollback);
 
@@ -115,10 +115,10 @@ module.exports = ({describe, define, before, after, it}) => {
         'Should set one vote at creation',
         async ({toWei, treasure, accounts}) => {
           const {member1, member4} = accounts;
-          const {addProposal, votesOf, lastProposal, totalPower, powerOf} = treasure.methods;
+          const {proposeTransfer, votesOf, lastProposal, totalPower, powerOf} = treasure.methods;
           const amount = toWei('10', 'ether');
 
-          const result = await addProposal(member4, amount).send({from:member1});
+          const result = await proposeTransfer(member4, amount).send({from:member1});
 
           const votes = await votesOf(1).call();
 
