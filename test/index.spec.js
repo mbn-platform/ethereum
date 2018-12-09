@@ -1,10 +1,5 @@
 const {web3, evm} = require('./util/web3');
-const sources = {
-  Distribution: require('../dist/distrib.json'),
-  Token: require('../dist/token.json'),
-  Treasure: require('../dist/treasure.json'),
-  Reseller: require('../dist/reseller.json'),
-};
+const sources = {Token: require('../dist/token.json')};
 const {getContracts, getAccounts} = require('../util/web3');
 
 const {toWei, fromWei} = web3.utils;
@@ -35,17 +30,11 @@ module.exports = (test) => {
     ]);
 
     contracts = await getContracts(web3, {
-      distribution: sources.Distribution,
       token: sources.Token,
-      treasure: sources.Treasure,
-      reseller: sources.Reseller,
     });
 
     return {contracts, accounts};
   });
 
-  require('./distribution.spec')(test);
   require('./token.spec')(test);
-  require('./treasure.spec')(test);
-  require('./reseller.spec')(test);
 };
