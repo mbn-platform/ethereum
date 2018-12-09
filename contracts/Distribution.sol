@@ -3,7 +3,7 @@ pragma solidity 0.4.25;
 import 'openzeppelin-solidity/contracts/token/ERC20/TokenTimelock.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
-import './Token.sol';
+import './IToken.sol';
 
 contract Distribution {
   using SafeMath for uint256;
@@ -11,7 +11,7 @@ contract Distribution {
   uint256 MAX_BONUS = 90;
 
   // ERC20 basic token contract being held
-  Token public token;
+  IToken public token;
 
   // Contract owner address
   address private owner_;
@@ -66,7 +66,7 @@ contract Distribution {
     require(_maxSupply > 0, 'maxSupply_gt');
     require(_rate > 0, 'rate_gt');
 
-    token = Token(_token);
+    token = IToken(_token);
     owner_ = _owner;
     treasure_ = _treasure;
     releaseTime_ = _releaseTime;

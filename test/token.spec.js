@@ -14,28 +14,6 @@ module.exports = ({describe, define, before, after, it}) => {
       return {token};
     });
 
-
-    describe('#release()', () => {
-      before(snapshot);
-      after(rollback);
-
-      it(
-        'Should change #isReleased() value',
-        async ({token, accounts}) => {
-          const {main} = accounts;
-          const {isReleased, release} = token.methods;
-
-          const before = await isReleased().call();
-          should(before).be.equal(false);
-
-          await release().send(main);
-
-          const after = await isReleased().call();
-          should(after).be.equal(true);
-        }
-      );
-    });
-
     describe('#mint()', () => {
       before(snapshot);
       after(rollback);
@@ -63,6 +41,27 @@ module.exports = ({describe, define, before, after, it}) => {
           const balance = await totalSupply().call();
 
           should(balance).be.equal('20');
+        }
+      );
+    });
+
+    describe('#release()', () => {
+      before(snapshot);
+      after(rollback);
+
+      it(
+        'Should change #isReleased() value',
+        async ({token, accounts}) => {
+          const {main} = accounts;
+          const {isReleased, release} = token.methods;
+
+          const before = await isReleased().call();
+          should(before).be.equal(false);
+
+          await release().send(main);
+
+          const after = await isReleased().call();
+          should(after).be.equal(true);
         }
       );
     });

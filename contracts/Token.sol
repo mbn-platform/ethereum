@@ -1,8 +1,8 @@
 pragma solidity 0.4.25;
 
-import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import './IToken.sol';
 
-contract Token is ERC20 {
+contract Token is IToken {
   string public name = 'Membrana';
   string public symbol = 'MBN';
   uint8 public decimals = 18;
@@ -41,6 +41,7 @@ contract Token is ERC20 {
   function mint(address to, uint256 value)
     public
     controllerOnly
+    notReleasedOnly
     returns (bool)
   {
     _mint(to, value);
