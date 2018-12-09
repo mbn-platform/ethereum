@@ -33,6 +33,8 @@ contract Reseller {
   mapping(address => uint256[]) private times_;
   // Last withdrawed income index
   mapping(address => uint256) private lastIncome_;
+  // Refferencies
+  mapping(address => address) private refs_;
 
   // Referal bonus is 7 %
   uint256 REFERAL_BONUS = 7;
@@ -73,7 +75,18 @@ contract Reseller {
     public
     payable
   {
+    fillBalance(_to, address(0));
+  }
+
+  function fillBalance(address _to, address _ref)
+    public
+    payable
+  {
     require(_to != address(0), 'to_req');
+    if (_ref != address(0) && refs_[_to] != _ref) {
+      require(refs_[_to] == address(0), 'ref_mismatch');
+      refs_[_to] = _ref;
+    }
     _fillBalance(_to, msg.value);
     emit Filled(_to, msg.value);
   }
@@ -105,6 +118,14 @@ contract Reseller {
     lastIncome_[_receiver] = incomes_[_receiver].length;
 
     _receiver.transfer(balance);
+  }
+
+  function getRef(address _sender)
+    public
+    view
+    returns(address)
+  {
+    return refs_[_sender];
   }
 
   function getIncomesCount(address _sender)
@@ -143,6 +164,8 @@ contract Reseller {
   function _transferTokens(address _from, address _to, address _ref, uint256 _extraBonus)
     internal
   {
+    require(_extraBonus < MAX_EXTRA_BONUS);
+
     State memory state = State(
       0,
       0,
@@ -150,8 +173,18 @@ contract Reseller {
       0,
       lastIncome_[_from],
       _extraBonus,
-      _ref != address(0)
+      false
     );
+
+    if (refs_[_from] != address(0)) {
+      require(_ref == address(0) || refs_[_from] == _ref, 'ref_mismatch');
+      state.hasRef = true;
+      refs_[_from] = _ref;
+    }
+    else if (_ref != address(0)) {
+      refs_[_from] = _ref;
+      state.hasRef = true;
+    }
 
     _calcIncomes(_from, state);
 

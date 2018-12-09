@@ -1,7 +1,7 @@
 const should = require('should');
 const dayjs = require('dayjs');
 
-const {snapshot, rollback, ether} = require('./util/helpers');
+const {snapshot, rollback, ether, throws} = require('./util/helpers');
 
 module.exports = ({describe, define, before, after, it}) => {
   describe('Reseller', () => {
@@ -63,9 +63,61 @@ module.exports = ({describe, define, before, after, it}) => {
       return {token, reseller, distribution, startTime, releaseTime, unlockTime};
     });
 
+    describe('#fillBalance()', () => {
+      before(snapshot);
+      after(rollback);
+
+      it('Should increase balance', async ({reseller, accounts}) => {
+        const {user1, user2} = accounts;
+        const {fillBalance, getBalance} = reseller.methods;
+
+        const balanceBefore = await getBalance(user1).call();
+        should(balanceBefore).be.equal(ether(0));
+
+        await fillBalance(user1).send({
+          from: user1,
+          value: ether(1),
+        });
+
+        const balanceAfter = await getBalance(user1).call();
+        should(balanceAfter).be.equal(ether(1));
+      });
+
+      it('Should set ref', async ({reseller, accounts}) => {
+        const {user1, user2} = accounts;
+        const {fillBalance, getRef} = reseller.methods;
+
+        const refBefore = await getRef(user1).call();
+        should(refBefore).be.equal('0x' + ('0'.repeat(40)));
+
+        await fillBalance(user1, user2).send({
+          from: user1,
+          value: ether(1),
+        });
+
+        const refAfter = await getRef(user1).call();
+        should(refAfter).be.equal(user2);
+      });
+
+      it('Should fail on wrong ref', async ({reseller, accounts}) => {
+        const {user1, user2, user3} = accounts;
+        const {fillBalance, getRef} = reseller.methods;
+
+        const caught = await throws(
+          /ref_mismatch/,
+          () => fillBalance(user1, user3).send({
+            from: user1,
+            value: ether(1),
+          })
+        );
+
+        should(caught).be.equal(true);
+      });
+    });
+
     describe('#transferTokens()', () => {
-      // before(snapshot);
-      // after(rollback);
+      before(snapshot);
+      after(rollback);
 
       it('Should provide tokens transfer', async ({
         token,
@@ -74,7 +126,6 @@ module.exports = ({describe, define, before, after, it}) => {
         accounts,
         evm,
         startTime,
-        web3,
       }) => {
         const {main, member1, user1} = accounts;
         const {
@@ -93,7 +144,8 @@ module.exports = ({describe, define, before, after, it}) => {
         const balanceA = await getBalance(member1).call();
         should(balanceA).be.equal(ether(1));
 
-        await evm.increaseTime(14 * 23 * 60 * 60);
+        // Move forward to 14 days
+        await evm.increaseTime(14 * 24 * 60 * 60);
 
         await fillBalance(member1).send({
           from: member1,
@@ -108,12 +160,36 @@ module.exports = ({describe, define, before, after, it}) => {
           from: main,
         });
 
+        const incomes = await getIncomesCount(member1).call();
+        should(incomes).be.equal('2');
+
+        const lastIncome = await getLastIncome(member1).call();
+        should(incomes).be.equal('2');
+
         const tokens = await token.methods.balanceOf(user1).call();
         should(tokens).be.equal('24000');
 
         const locked = await distribution.methods.getLockedBalance(user1).call();
         should(locked).be.equal('4000');
       });
-    })
+    });
+
+    it('Should fail on changed refs', async ({accounts, contracts, reseller}) => {
+      const {main, member1, member2, member3} = accounts;
+      const {fillBalance, transferTokens} = reseller.methods;
+
+      await fillBalance(member2, member1).send({
+        from: member2,
+        value: ether(1),
+      });
+
+      const caught = await throws(
+        /ref_mismatch/,
+        () => transferTokens(member2, member2, member3, '0')
+        .send({from: main})
+      );
+
+      should(caught).be.equal(true);
+    });
   });
 };
