@@ -43,6 +43,6 @@ module.exports = (test) => {
   });
 
   require('./distribution.spec')(test);
-  // require('./token.spec')(test);
-  // require('./treasure.spec')(test);
+  require('./token.spec')(test);
+  require('./treasure.spec')(test);
 };

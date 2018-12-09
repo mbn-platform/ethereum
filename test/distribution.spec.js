@@ -23,7 +23,7 @@ module.exports = ({describe, define, before, after, it}) => {
         main,
         releaseTime.unix().toString(),
         unlockTime.unix().toString(),
-        10,
+        10000000,
         ether(0.0001),
       )
       .send(main);
@@ -100,7 +100,7 @@ module.exports = ({describe, define, before, after, it}) => {
             const before = await isReseller(member1).call();
             should(before).be.equal(false);
 
-            await addReseller(member1, 5).send(main);
+            await addReseller(member1, 100).send(main);
 
             const after = await isReseller(member1).call();
             should(after).be.equal(true);
@@ -170,9 +170,12 @@ module.exports = ({describe, define, before, after, it}) => {
     });
 
     describe('#transferTokens()', () => {
+      before(snapshot);
+      after(rollback);
+
       it(
         'Should transfer tokens to Token contract',
-        wrap(async ({accounts, distribution, token, web3}) => {
+        async ({accounts, distribution, token, web3}) => {
           const {main, member1, user1} = accounts;
           const {transferTokens, getLockedBalance} = distribution.methods;
           const {balanceOf} = token.methods;
@@ -184,7 +187,7 @@ module.exports = ({describe, define, before, after, it}) => {
 
           await transferTokens(user1, 1, 2).send({
             from: member1,
-            value: ether(10),
+            value: ether(1),
           });
 
           const balanceOfAfter = await balanceOf(user1).call();
@@ -192,31 +195,31 @@ module.exports = ({describe, define, before, after, it}) => {
 
           const locked = await getLockedBalance(user1).call();
           should(locked).be.equal('2');
-        })
+        }
       );
 
       it(
         'Should decrease avaiable for reseller tokens count',
-        wrap(async ({accounts, distribution, token, web3}) => {
-          const {main, member1, user1} = accounts;
+        async ({accounts, distribution, token, web3}) => {
+          const {member1, user1} = accounts;
           const {transferTokens, getAvailable} = distribution.methods;
 
           const availableBefore = await getAvailable(member1).call();
-          should(availableBefore).be.equal('5');
+          should(availableBefore).be.equal('97');
 
           await transferTokens(user1, 1, 2).send({
             from: member1,
-            value: ether(10),
+            value: ether(1),
           });
 
           const availableAfter = await getAvailable(member1).call();
-          should(availableAfter).be.equal('2');
-        })
+          should(availableAfter).be.equal('94');
+        }
       );
 
       it(
         'Should transfer ethers to Treasurer',
-        wrap(async ({accounts, distribution, token, web3}) => {
+        async ({accounts, distribution, token, web3}) => {
           const {main, member1, user1} = accounts;
           const {transferTokens} = distribution.methods;
 
@@ -224,32 +227,32 @@ module.exports = ({describe, define, before, after, it}) => {
 
           await transferTokens(user1, 1, 2).send({
             from: member1,
-            value: ether(10),
+            value: ether(1),
           });
 
           const balanceAfter = await web3.eth.getBalance(main);
-          should(balanceAfter - balanceBefore + '').be.equal(ether(10));
-        })
+          should(balanceAfter - balanceBefore + '').be.equal(ether(1));
+        }
       );
 
       it(
         'Should change locks count',
-        wrap(async ({accounts, distribution, token, web3}) => {
+        async ({accounts, distribution, token, web3}) => {
           const {main, member1, user1} = accounts;
           const {transferTokens, getAvailable, getLocksCount} = distribution.methods;
           const {balanceOf} = token.methods;
 
           const locksBefore = await getLocksCount(user1).call();
-          should(locksBefore).be.equal('0');
+          should(locksBefore).be.equal('3');
 
           await transferTokens(user1, 1, 2).send({
             from: member1,
-            value: ether(10),
+            value: ether(1),
           });
 
           const locksAfter = await getLocksCount(user1).call();
-          should(locksAfter).be.equal('1');
-        })
+          should(locksAfter).be.equal('4');
+        }
       );
     });
   });
