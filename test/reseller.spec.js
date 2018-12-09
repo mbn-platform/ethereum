@@ -38,6 +38,10 @@ module.exports = ({describe, define, before, after, it}) => {
       )
       .send(main);
 
+      await token.methods.setController(distribution.options.address).send({
+        from: main,
+      });
+
       // Add reseller to distribution ccontract and allow to sell 1000 tokens
       await distribution.methods.addReseller(reseller.options.address, 1000000000)
       .send({from: main, gas: '5000000'});
@@ -66,6 +70,7 @@ module.exports = ({describe, define, before, after, it}) => {
       it('Should provide tokens transfer', async ({
         token,
         reseller,
+        distribution,
         accounts,
         evm,
         startTime,
@@ -88,7 +93,7 @@ module.exports = ({describe, define, before, after, it}) => {
         const balanceA = await getBalance(member1).call();
         should(balanceA).be.equal(ether(1));
 
-        await evm.increaseTime(startTime.add(14, 'day').unix());
+        await evm.increaseTime(14 * 23 * 60 * 60);
 
         await fillBalance(member1).send({
           from: member1,
@@ -103,14 +108,11 @@ module.exports = ({describe, define, before, after, it}) => {
           from: main,
         });
 
-        console.log('%o', result);
-
-        const incomes = await getIncomesCount(member1).call();
-        const lastIncome = await getLastIncome(member1).call();
-        console.log({incomes, lastIncome});
-
         const tokens = await token.methods.balanceOf(user1).call();
-        console.log({tokens});
+        should(tokens).be.equal('24000');
+
+        const locked = await distribution.methods.getLockedBalance(user1).call();
+        should(locked).be.equal('4000');
       });
     })
   });
