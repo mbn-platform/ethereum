@@ -14,7 +14,7 @@
     "compile-all": "npm run compile-token",
     "compile-token": "FMT=PRETTY ./cli.js compile contracts/Token/Token.sol Token > dist/token.json",
     "build": "npm run clean && npm run create && npm run compile-all",
-    "test": "node util/tap-runner.js test/index.spec.js"
+    "test": "node util/testsuit-runner.js test/index.spec.js"
   },
   "dependencies": {
     "eth-lib": "^0.2.8",
