@@ -86,7 +86,6 @@ class TapReporter extends EventEmitter {
     let msg = 'Bail out!';
     msg += ' ' + (item.title || item.type) + ' at ' + item.path.join(' / ') + '\n';
     if (item.error) {
-      console.log(item.error);
       msg += item.error.stack;
     }
     this.output('\n' + msg);

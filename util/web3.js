@@ -75,3 +75,4 @@ async function getContracts(web3, contracts) {
 exports.deployContract = deployContract;
 exports.getAccounts = getAccounts;
 exports.getContracts = getContracts;
+exports.getContract = getContract;

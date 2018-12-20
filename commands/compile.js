@@ -3,6 +3,7 @@ const path = require('path');
 const solc = require('solc');
 const globby = require('globby');
 const chalk = require('chalk');
+const {inspect} = require('util');
 
 const ch = new chalk.constructor({
   enabled: true,
@@ -15,7 +16,7 @@ const defaultSettings = {
     enabled: false,
     // Optimize for how many times you intend to run the code.
     // Lower values will optimize more for initial deployment cost, higher values will optimize more for high-frequency usage.
-    runs: 200
+    runs: 200,
   },
   outputSelection: {
     '*': {
@@ -65,13 +66,15 @@ async function compile(mainFile, contract, format = 'RAW', outputSettings) {
     settings,
   };
 
-  const loader = (filepath, ...args) => {
+  const loader = (filepath) => {
     if (fileMap.hasOwnProperty(filepath)) {
       return {contents: fileMap[filepath]};
     }
 
     if (fs.existsSync(path.join('node_modules', filepath))) {
-      return {contents: fs.readFileSync(path.join('node_modules', filepath), 'utf8')}
+      return {
+        contents: fs.readFileSync(path.join('node_modules', filepath), 'utf8'),
+      };
     }
 
     return {error: `File "${filepath}" not found`};
@@ -131,13 +134,13 @@ function present(format, output) {
   case 'PRETTY':
     return JSON.stringify(output, null, 2);
   case 'RAW':
-  defalt:
-    return output;
+  default:
+    return inspect(output, {colors: process.stdin.isTTY, depth: Infinity});
   }
 }
 
-async function main(argv) {
-  const [,,src, contract, output = null] = argv;
+module.exports = async function cliCompile(argv) {
+  const [src, contract, output = null] = argv;
 
   const {errors, result} = await compile(src, contract, process.env.FMT, output ? output.split(',') : null);
 
@@ -162,11 +165,4 @@ async function main(argv) {
   }
 
   console.log(result);
-}
-
-main(process.argv)
-.catch((error) => {
-  console.error(error);
-  return 1;
-})
-.then((code = 0) => process.exit(code));
+};
