@@ -2,8 +2,9 @@ pragma solidity 0.5.6;
 
 import './IToken.sol';
 import '../Ownership/SingleOwner.sol';
+import '../Access/Privileged.sol';
 
-contract Token is IToken, SingleOwner {
+contract Token is IToken, SingleOwner, Privileged {
   string public name = 'Membrana';
   string public symbol = 'MBN';
   uint8 public decimals = 18;
@@ -15,8 +16,6 @@ contract Token is IToken, SingleOwner {
     SingleOwner(_owner)
   {}
 
-  event Released();
-
   // Modifiers
   modifier releasedOnly() {
     require(isReleased, 'released_only');
@@ -25,6 +24,11 @@ contract Token is IToken, SingleOwner {
 
   modifier notReleasedOnly() {
     require(! isReleased, 'not_released_only');
+    _;
+  }
+
+  modifier releasedOrPrivilegedOnly() {
+    require(isReleased || isPrivileged(msg.sender), 'released_or_privileged_only');
     _;
   }
 
@@ -42,7 +46,7 @@ contract Token is IToken, SingleOwner {
 
   function transfer(address to, uint256 value)
     public
-    releasedOnly
+    releasedOrPrivilegedOnly
     returns (bool)
   {
     return super.transfer(to, value);
@@ -86,6 +90,19 @@ contract Token is IToken, SingleOwner {
     notReleasedOnly
   {
     isReleased = true;
-    emit Released();
+  }
+
+  function setPrivileged(address _addr)
+    public
+    ownerOnly
+  {
+    _setPrivileged(_addr);
+  }
+
+  function setUnprivileged(address _addr)
+    internal
+    ownerOnly
+  {
+    _setUnprivileged(_addr);
   }
 }
