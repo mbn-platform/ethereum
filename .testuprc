@@ -1,0 +1,6 @@
+{
+  "reporter": "console",
+  "reporterConfig": {
+    "colorize": true
+  }
+}

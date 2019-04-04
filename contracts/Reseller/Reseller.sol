@@ -1,11 +1,12 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.6;
 
 import 'openzeppelin-solidity/contracts/math/Math.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
-import './Distribution.sol';
+import '../Ownership/SingleOwner.sol';
+import '../Distribution/IStagedDistribution.sol';
 
-contract Reseller {
+contract Reseller is SingleOwner {
   using Math for uint256;
   using SafeMath for uint256;
 
@@ -20,7 +21,7 @@ contract Reseller {
   }
 
   // Token distribution
-  Distribution public presale;
+  IStagedDistribution public presale;
   // Contract owner
   address private owner_;
   // Accounts' total balances
@@ -45,16 +46,15 @@ contract Reseller {
     address _presale
   )
     public
+    SingleOwner(_owner)
   {
-    require(_owner != address(0), 'owner_req');
     require(_presale != address(0), 'presale_req');
 
-    owner_ = _owner;
-    presale = Distribution(_presale);
+    presale = IStagedDistribution(_presale);
   }
 
   function ()
-    public
+    external
     payable
   {
     incomes_[msg.sender].push(msg.value);
@@ -107,7 +107,7 @@ contract Reseller {
     return balances_[_receiver];
   }
 
-  function chargeback(address _receiver)
+  function chargeback(address payable _receiver)
     public
     ownerOnly
   {
@@ -202,7 +202,7 @@ contract Reseller {
     emit Transferred(_from, _to, _ref, state.balance, state.tokens, state.bonus);
   }
 
-  function _calcIncomes(address _from, State _state)
+  function _calcIncomes(address _from, State memory _state)
     internal
     view
   {
@@ -227,7 +227,7 @@ contract Reseller {
     uint _period,
     uint _stage,
     uint _income,
-    State _state
+    State memory _state
   )
     internal
     view

@@ -1,22 +1,37 @@
 const should = require('should');
 
-const {snapshot, rollback} = require('./util/helpers');
+const {mountWeb3, mountEvm, mountAccounts, snapshot} = require('./util/web3');
+const {createDeployment} = require('../util/web3');
 
-module.exports = ({describe, define, before, after, it}) => {
+const contract = require('../dist/Token.js');
+
+module.exports = ({describe, use, it}) => {
   describe('Token', function() {
-    before(snapshot);
-    after(rollback);
+    use(mountWeb3());
+    use(mountEvm());
+    use(snapshot);
 
-    define(async ({accounts, contracts}) => {
-      const token = await contracts.token.deploy(accounts.main)
-      .send(accounts.main);
+    use(mountAccounts({
+      main: 0,
+      member1: 1,
+    }));
 
-      return {token};
+    use(async (ctx, next) => {
+      const {web3, accounts} = ctx;
+      const {main} = accounts;
+
+      const token = await createDeployment(web3, contract)
+      .deploy(main)
+      .send(main);
+
+      return next({
+        ...ctx,
+        token,
+      });
     });
 
     describe('#mint()', () => {
-      before(snapshot);
-      after(rollback);
+      use(snapshot);
 
       it(
         'Should increase balanceOf',
@@ -46,13 +61,12 @@ module.exports = ({describe, define, before, after, it}) => {
     });
 
     describe('#release()', () => {
-      before(snapshot);
-      after(rollback);
+      use(snapshot);
 
       it(
         'Should change #isReleased() value',
         async ({token, accounts}) => {
-          const {main} = accounts;
+          const [main] = accounts;
           const {isReleased, release} = token.methods;
 
           const before = await isReleased().call();

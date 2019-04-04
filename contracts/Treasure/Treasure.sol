@@ -1,10 +1,11 @@
-pragma solidity ^0.4.24;
+pragma solidity 0.5.6;
 
-import './lib/Votable.sol';
+import '../Voting/Votable.sol';
+import '../Ownership/SingleOwner.sol';
 
-contract Treasure is Votable {
+contract Treasure is Votable, SingleOwner {
   struct Proposal {
-    address to;
+    address payable to;
     uint256 amount;
   }
 
@@ -13,7 +14,7 @@ contract Treasure is Votable {
   constructor(address _owner)
     public
     payable
-    Votable(_owner)
+    SingleOwner(_owner)
   {}
 
   // Fallback
@@ -28,7 +29,7 @@ contract Treasure is Votable {
   event Transferred(address receiver, uint256 amount);
 
   // Methodds
-  function proposeTransfer(address _to, uint256 _amount)
+  function proposeTransfer(address payable _to, uint256 _amount)
     public
     voterOnly
     returns(uint256)

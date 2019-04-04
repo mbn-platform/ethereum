@@ -1,11 +1,9 @@
-pragma solidity ^0.4.24;
+pragma solidity 0.5.6;
 
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 contract Votable {
   using SafeMath for uint256;
-
-  address owner;
 
   uint256 public totalPower;
 
@@ -15,29 +13,18 @@ contract Votable {
   mapping(uint256 => bool) private completed_;
   mapping(uint256 => mapping(address => uint256)) private givenVotes_;
 
-  constructor(address _owner)
-    internal
-  {
-    owner = _owner;
-  }
-
   // Events
   event ProposalAdded(address voter, uint256 number);
   event VotesAdded(address voter, uint256 number, uint256 votes);
   event VotesRevoked(address voter, uint256 number, uint256 votes);
 
   // Modifiers
-  modifier ownerOnly() {
-    require(msg.sender == owner, 'owner_access');
-    _;
-  }
-
   modifier voterOnly() {
     require(votePower_[msg.sender] > 0, 'voter_access');
     _;
   }
 
-  modifier votable(uint256 _n) {
+  modifier votableOnly(uint256 _n) {
     require(completed_[_n] == false, 'completed_eq');
     require(_n > 0, 'n_gt');
     require(_n <= lastProposal, 'n_lte');
@@ -45,12 +32,12 @@ contract Votable {
     _;
   }
 
-  function setOwner(address _owner)
-    public
-    ownerOnly
-  {
-    owner = _owner;
+  modifier ownerOnly() {
+    require(_isOwner(msg.sender), 'owner_access');
+    _;
   }
+
+  function _isOwner(address) internal view returns(bool);
 
   // Methods
   function addVoter(address _voter)
@@ -98,7 +85,7 @@ contract Votable {
   function vote(uint256 _n)
     public
     voterOnly
-    votable(_n)
+    votableOnly(_n)
   {
     require(givenVotes_[_n][msg.sender] == 0, 'givenVotes_eq');
     require(completed_[_n] == false);
@@ -125,6 +112,7 @@ contract Votable {
   function revoke(uint256 _n)
     public
     voterOnly
+    votableOnly(_n)
   {
     require(givenVotes_[_n][msg.sender] > 0, 'givenVotes_ok');
 
@@ -162,8 +150,8 @@ contract Votable {
   function proposalAccepted(uint256 _n) internal;
 
   function isVotable(uint256 _n)
-  internal
-  view
+    internal
+    view
   returns(bool);
 
   function isAccepted(uint256 _n, uint256 _votes, uint256 _totalPower)

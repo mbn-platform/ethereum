@@ -1,31 +1,23 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.6;
 
 import './IToken.sol';
+import '../Ownership/SingleOwner.sol';
 
-contract Token is IToken {
+contract Token is IToken, SingleOwner {
   string public name = 'Membrana';
   string public symbol = 'MBN';
   uint8 public decimals = 18;
   address public controller;
   bool public isReleased;
 
-  constructor(address _controller)
+  constructor(address _owner)
     public
-  {
-    require(_controller != address(0));
-
-    controller = _controller;
-  }
+    SingleOwner(_owner)
+  {}
 
   event Released();
 
   // Modifiers
-
-  modifier controllerOnly() {
-    require(msg.sender == controller, 'controller_access');
-    _;
-  }
-
   modifier releasedOnly() {
     require(isReleased, 'released_only');
     _;
@@ -40,7 +32,7 @@ contract Token is IToken {
 
   function mint(address to, uint256 value)
     public
-    controllerOnly
+    ownerOnly
     notReleasedOnly
     returns (bool)
   {
@@ -90,19 +82,10 @@ contract Token is IToken {
 
   function release()
     public
-    controllerOnly
+    ownerOnly
     notReleasedOnly
   {
     isReleased = true;
     emit Released();
-  }
-
-  function setController(address _controller)
-    public
-    controllerOnly
-  {
-    require(_controller != address(0), 'controller_req');
-
-    controller = _controller;
   }
 }

@@ -30,26 +30,18 @@ function getAddress(dir) {
 
 function selectNetwork() {
   switch (process.env.NET || '') {
-    case 'main':
-      return 'mainnet';
-    case 'rinkeby':
-    case '':
-      return 'rinkeby';
-    default:
-      throw new Error('Unknown network');
+  case 'main':
+    return 'mainnet';
+  case 'rinkeby':
+  case '':
+    return 'rinkeby';
+  default:
+    throw new Error('Unknown network');
   }
 }
 
 function getContractPath(dir, name) {
   return path.join(dir, name + '.json');
-}
-
-function saveContract({
-  dir, name, address, abi
-}) {
-  fs.writeFileSync(
-    path.join()
-  )
 }
 
 exports.getDir = getDir;

@@ -2,9 +2,15 @@ const createContract = require('./web3-contract');
 
 // Deploy contract
 async function deployContract(web3, contract, args = [], {from, ...options}) {
-  const block = await web3.eth.getBlock('latest');
+  let {gasLimit} = options;
+
+  if (! gasLimit) {
+    const block = await web3.eth.getBlock('latest');
+    gasLimit = block.gasLimit;
+  }
+
   const Contract = new web3.eth.Contract(contract.abi, {
-    gas: block.gasLimit,
+    gas: gasLimit,
     ...options,
     from,
   });
@@ -29,9 +35,10 @@ async function getAccounts(web3, names, defaultName = 'other') {
   }), {});
 }
 
-function getContract(web3, contract) {
-  if (contract.evm && ! contract.evm.bytecode.object.length) {
-    throw new Error(`Invalid contract "${name}" descriptor`);
+function createDeployment(web3, contract) {
+  const {evm} = contract;
+  if (!evm || ! evm.bytecode || ! evm.bytecode.object || ! evm.bytecode.object.length) {
+    throw new Error('Invalid contract descriptor');
   }
 
   let deploy;
@@ -50,7 +57,7 @@ function getContract(web3, contract) {
 
           return deployContract(web3, contract, callArgs, opts);
         },
-      }
+      };
     };
   }
 
@@ -64,15 +71,15 @@ function getContract(web3, contract) {
   };
 }
 
-async function getContracts(web3, contracts) {
+async function createDeployments(web3, contracts) {
   return Object.getOwnPropertyNames(contracts)
   .reduce((result, name) => ({
     ...result,
-    [name]: getContract(web3, contracts[name]),
+    [name]: createDeployment(web3, contracts[name]),
   }), {});
 }
 
 exports.deployContract = deployContract;
 exports.getAccounts = getAccounts;
-exports.getContracts = getContracts;
-exports.getContract = getContract;
+exports.createDeployments = createDeployments;
+exports.createDeployment = createDeployment;

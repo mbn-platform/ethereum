@@ -1,11 +1,12 @@
-pragma solidity 0.4.25;
+pragma solidity 0.5.6;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/TokenTimelock.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
-import './IToken.sol';
+import '../Token/IToken.sol';
+import './IDistribution.sol';
 
-contract Distribution {
+contract Distribution is IDistribution {
   using SafeMath for uint256;
 
   uint256 MAX_BONUS = 90;

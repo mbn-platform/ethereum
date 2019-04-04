@@ -1,36 +1,56 @@
 const should = require('should');
 
-const {snapshot, rollback, ether} = require('./util/helpers');
+const {mountWeb3, mountWeb3Utils, mountEvm, mountAccounts, snapshot} = require('./util/web3');
+const {createDeployment} = require('../util/web3');
 
-module.exports = ({describe, define, before, after, it}) => {
+const contract = require('../dist/Treasure');
+
+module.exports = ({describe, use, it}) => {
   describe('Treasure', function() {
-    before(snapshot);
-    after(rollback);
+    use(mountWeb3());
+    use(mountWeb3Utils());
+    use(mountEvm());
+    use(snapshot);
 
-    define(async ({accounts, contracts}) => {
+    use(mountAccounts({
+      main: 0,
+      member1: 1,
+      member2: 2,
+      member3: 3,
+      member4: 4,
+      user1: 5,
+      user2: 6,
+      user3: 7,
+      user4: 8,
+    }));
+
+    use(async (ctx, next) => {
+      const {web3, accounts} = ctx;
       const {main} = accounts;
-      const treasure = await contracts.treasure.deploy(main)
+      const treasure = await createDeployment(web3, contract)
+      .deploy(main)
       .send({
-          from: main,
-          value: ether(100),
+        from: main,
+        value: web3.utils.toWei('100', 'ether'),
       });
 
-      const {addVoter, finalize} = treasure.methods;
+      const {addVoter} = treasure.methods;
 
       await addVoter(accounts.member1, 1).send(main);
       await addVoter(accounts.member2, 1).send(main);
       await addVoter(accounts.member3, 1).send(main);
       await addVoter(accounts.member4, 1).send(main);
 
-      return {
+      return next({
+        ...ctx,
         treasure,
-      };
+      });
     });
 
     describe('#constructor()', () => {
       it(
         'Should be payable',
-        async ({treasure, web3, fromWei}) => {
+        async ({treasure, web3, utils:{fromWei}}) => {
           const balance = await web3.eth.getBalance(treasure.options.address);
 
           should(fromWei(balance, 'ether')).be.equal('100');
@@ -39,8 +59,7 @@ module.exports = ({describe, define, before, after, it}) => {
     });
 
     describe('#addVoter() && #removeVoter())', () => {
-      before(snapshot);
-      after(rollback);
+      use(snapshot);
 
       it(
         'Should add voters',
@@ -67,7 +86,7 @@ module.exports = ({describe, define, before, after, it}) => {
           const before = await powerOf(user2).call();
           should(before).be.equal('0');
 
-          await addVoter(user2, 100).send(main);
+          await addVoter(user2, '100').send(main);
 
           const after = await powerOf(user2).call();
           should(after).be.equal('100');
@@ -108,17 +127,17 @@ module.exports = ({describe, define, before, after, it}) => {
     });
 
     describe('#proposeTransfer() and #vote', () => {
-      before(snapshot);
-      after(rollback);
+      use(snapshot);
 
       it(
         'Should set one vote at creation',
-        async ({toWei, treasure, accounts}) => {
+        async ({utils:{toWei}, treasure, accounts}) => {
           const {member1, member4} = accounts;
-          const {proposeTransfer, votesOf, lastProposal, totalPower, powerOf} = treasure.methods;
+          const {proposeTransfer, votesOf} = treasure.methods;
           const amount = toWei('10', 'ether');
 
-          const result = await proposeTransfer(member4, amount).send({from:member1});
+          await proposeTransfer(member4, amount)
+          .send({from:member1});
 
           const votes = await votesOf(1).call();
 
@@ -128,8 +147,8 @@ module.exports = ({describe, define, before, after, it}) => {
 
       it(
         'Should increase votes on vote',
-        async ({toWei, treasure, accounts}) => {
-          const {member2, member4} = accounts;
+        async ({treasure, accounts}) => {
+          const {member2} = accounts;
           const {vote, votesOf} = treasure.methods;
 
           await vote(1).send({from: member2});
@@ -142,9 +161,9 @@ module.exports = ({describe, define, before, after, it}) => {
 
       it(
         'Should transfer when quorum reached',
-        async ({toWei, treasure, accounts, getBalance}) => {
+        async ({treasure, accounts, utils:{getBalance}}) => {
           const {member3, member4} = accounts;
-          const {vote, votesOf, powerOf, totalPower, isCompleted} = treasure.methods;
+          const {vote, votesOf, isCompleted} = treasure.methods;
 
           await vote(1).send({from:member3});
 
@@ -158,6 +177,6 @@ module.exports = ({describe, define, before, after, it}) => {
           should(balance).be.equal('1010');
         }
       );
-    })
+    });
   });
 };

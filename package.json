@@ -1,29 +1,19 @@
 {
   "devDependencies": {
+    "@testup/cli": "^0.2.0",
+    "@testup/console-reporter": "^0.1.1",
+    "@testup/core": "^0.1.2",
     "chalk": "^2.4.1",
     "dayjs": "^1.7.7",
-    "ganache-cli": "^6.2.3",
+    "eth-lib": "^0.2.8",
+    "ethereumjs-abi": "^0.6.5",
+    "ganache-cli": "^6.4.1",
     "husky": "^1.2.0",
+    "openzeppelin-solidity": "^2.2.0",
     "should": "^13.2.3",
-    "solc": "^0.4.25",
     "web3": "^1.0.0-beta.37"
   },
   "scripts": {
-    "clean": "rm -rf dist",
-    "create": "mkdir dist",
-    "compile-all": "npm run compile-token",
-    "compile-token": "FMT=PRETTY ./bin.js compile contracts/Token/Token.sol Token > dist/token.json",
-    "build": "npm run clean && npm run create && npm run compile-all",
-    "test": "node util/testsuit-runner.js test/index.spec.js"
-  },
-  "dependencies": {
-    "eth-lib": "^0.2.8",
-    "ethereumjs-abi": "^0.6.5",
-    "openzeppelin-solidity": "^2.0.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run build && npm test"
-    }
+    "test": "testup run test/*.spec.js"
   }
 }

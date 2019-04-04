@@ -5,7 +5,7 @@
   },
   "parserOptions": {
     "sourceType": "module",
-    "ecmaVersion": 9,
+    "ecmaVersion": 8,
     "ecmaFeatures": {
       "experimentalObjectRestSpread": true
     }
@@ -26,6 +26,8 @@
     "no-multiple-empty-lines": [2, {max: 1}],
     "no-trailing-spaces": 2,
     "no-use-before-define": 0,
+    "no-undefined": 2,
+    "no-undef": 2,
     "no-unused-vars": 1,
     "indent": [2, 2, { "MemberExpression": 0 }],
     "quotes": [2, "single", "avoid-escape"],
@@ -39,7 +41,6 @@
     "no-nested-ternary": 2,
     "no-underscore-dangle": 0,
     "comma-dangle": [1, "always-multiline"],
-    "no-shadow": 1,
-    "no-duplicate-imports": ["error"]
+    "no-shadow": 1
   }
 }
