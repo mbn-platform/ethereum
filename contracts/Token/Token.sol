@@ -8,8 +8,8 @@ contract Token is IToken, SingleOwner, Privileged {
   string public name = 'Membrana';
   string public symbol = 'MBN';
   uint8 public decimals = 18;
-  address public controller;
   bool public isReleased;
+  uint public releaseDate;
 
   constructor(address _owner)
     public
@@ -52,7 +52,7 @@ contract Token is IToken, SingleOwner, Privileged {
     return super.transfer(to, value);
   }
 
-  function transferFrom(address from,address to, uint256 value)
+  function transferFrom(address from, address to, uint256 value)
     public
     releasedOnly
     returns (bool)
@@ -90,6 +90,7 @@ contract Token is IToken, SingleOwner, Privileged {
     notReleasedOnly
   {
     isReleased = true;
+    releaseDate = now;
   }
 
   function setPrivileged(address _addr)
@@ -100,7 +101,7 @@ contract Token is IToken, SingleOwner, Privileged {
   }
 
   function setUnprivileged(address _addr)
-    internal
+    public
     ownerOnly
   {
     _setUnprivileged(_addr);
