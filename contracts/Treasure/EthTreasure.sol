@@ -3,7 +3,7 @@ pragma solidity 0.5.6;
 import '../Voting/Votable.sol';
 import '../Ownership/SingleOwner.sol';
 
-contract Treasure is Votable, SingleOwner {
+contract EthTreasure is Votable, SingleOwner {
   struct Proposal {
     address payable to;
     uint256 amount;
