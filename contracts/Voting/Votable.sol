@@ -157,7 +157,7 @@ contract Votable is ReentrancyGuard, IVotable {
   /// has no any limitation thus each vote is votable until it completes.
   function isVotable(uint256)
     internal
-    pure
+    view
     returns(bool)
   {
     return true;
