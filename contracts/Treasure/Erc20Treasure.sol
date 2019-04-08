@@ -30,6 +30,7 @@ contract Erc20Treasure is Votable, SingleOwner {
   function proposeTransfer(address _to, uint256 _amount)
     public
     voterOnly
+    nonReentrant
     returns(uint256)
   {
     proposals_.push(Proposal(_to, _amount));
