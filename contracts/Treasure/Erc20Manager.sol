@@ -5,15 +5,10 @@ import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import '../Voting/Votable.sol';
 import '../Ownership/SingleOwner.sol';
 
-contract Erc20Treasure is Votable, SingleOwner {
-  struct Proposal {
-    address to;
-    uint256 amount;
-  }
-
+contract Erc20Manager is Votable, SingleOwner {
   IERC20 public token;
 
-  Proposal[] private proposals_;
+  bytes[] private proposals_;
 
   constructor(address _owner, address _token)
     public
@@ -27,13 +22,12 @@ contract Erc20Treasure is Votable, SingleOwner {
   event Transferred(address receiver, uint256 amount);
 
   // Methods
-  function proposeTransfer(address _to, uint256 _amount)
+  function proposeTransfer(bytes memory _data)
     public
     voterOnly
-    nonReentrant
     returns(uint256)
   {
-    proposals_.push(Proposal(_to, _amount));
+    proposals_.push(_data);
     uint256 n = proposals_.length;
 
     super.initVoting(n);
@@ -51,11 +45,13 @@ contract Erc20Treasure is Votable, SingleOwner {
   function applyProposal(uint256 _n)
     internal
   {
-    Proposal storage proposal = proposals_[_n - 1];
-    require(proposal.amount <= token.balanceOf(address(this)), 'amount_enough');
+    (bool success, bytes memory returndata) = address(token).call(
+      proposals_[_n - 1]
+    );
+    require(success);
 
-    require(token.transfer(proposal.to, proposal.amount), 'transferred');
-
-    emit Transferred(proposal.to, proposal.amount);
+    if (returndata.length > 0) { // Return data is optional
+      require(abi.decode(returndata, (bool)));
+    }
   }
 }
