@@ -39,12 +39,12 @@ contract Erc20Treasure is Votable, SingleOwner {
     return n;
   }
 
-  function isAccepted(uint256, uint256 _votes, uint256 _totalVotes)
+  function isAccepted(uint256, uint256 _votes, uint256 _totalPower)
     internal
     view
     returns(bool)
   {
-    return _votes >= _totalVotes / 2 + 1;
+    return _votes >= _totalPower / 2 + 1;
   }
 
   function applyProposal(uint256 _n)
