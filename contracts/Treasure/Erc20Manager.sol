@@ -22,9 +22,10 @@ contract Erc20Manager is Votable, SingleOwner {
   event Transferred(address receiver, uint256 amount);
 
   // Methods
-  function proposeTransfer(bytes memory _data)
+  function proposeCall(bytes memory _data)
     public
     voterOnly
+    nonReentrant
     returns(uint256)
   {
     proposals_.push(_data);
