@@ -3,13 +3,15 @@ pragma solidity 0.5.6;
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol';
 
-contract Votable is ReentrancyGuard {
+import './IVotable.sol';
+
+contract Votable is ReentrancyGuard, IVotable {
   using SafeMath for uint256;
 
   uint256 public totalPower;
-
   uint256 public lastProposal;
-  mapping(address => uint256) votePower_;
+
+  mapping(address => uint256) private votePower_;
   mapping(uint256 => uint256) private votes_;
   mapping(uint256 => bool) private completed_;
   mapping(uint256 => mapping(address => uint256)) private givenVotes_;
@@ -155,7 +157,7 @@ contract Votable is ReentrancyGuard {
   /// has no any limitation thus each vote is votable until it completes.
   function isVotable(uint256)
     internal
-    view
+    pure
     returns(bool)
   {
     return true;
