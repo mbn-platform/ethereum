@@ -1,21 +1,20 @@
 pragma solidity 0.5.6;
 
-import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
-
 import '../Voting/Votable.sol';
 import '../Ownership/SingleOwner.sol';
 
-contract Erc20Manager is Votable, SingleOwner {
-  IERC20 public token;
+contract ContractManager is Votable, SingleOwner {
+  address public target;
 
   bytes[] private proposals_;
 
-  constructor(address _owner, address _token)
+  constructor(address _owner, address _target)
     public
     SingleOwner(_owner)
   {
-    require(_token != address(0), 'token_req');
-    token = IERC20(_token);
+    require(_target != address(0), 'target_req');
+
+    target = _target;
   }
 
   // Events
@@ -46,7 +45,7 @@ contract Erc20Manager is Votable, SingleOwner {
   function applyProposal(uint256 _n)
     internal
   {
-    (bool success, bytes memory returndata) = address(token).call(
+    (bool success, bytes memory returndata) = target.call(
       proposals_[_n - 1]
     );
     require(success);

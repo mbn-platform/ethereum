@@ -4,12 +4,12 @@ const {mountWeb3, mountWeb3Utils, mountEvm, mountAccounts, snapshot} = require('
 const {createDeployment} = require('../util/web3');
 
 const contracts = {
-  erc20Management: require('../dist/Erc20Manager'),
+  erc20Management: require('../dist/ContractManager'),
   token: require('../dist/Token'),
 };
 
 module.exports = ({describe, use, it}) => {
-  describe('Erc20Manager', function() {
+  describe('ContractManager', function() {
     use(mountWeb3());
     use(mountWeb3Utils());
     use(mountEvm());
