@@ -28,7 +28,7 @@ contract Treasure is Votable, SingleOwner {
   // Events
   event Transferred(address receiver, uint256 amount);
 
-  // Methodds
+  // Methods
   function proposeTransfer(address payable _to, uint256 _amount)
     public
     voterOnly
@@ -37,18 +37,8 @@ contract Treasure is Votable, SingleOwner {
     proposals_.push(Proposal(_to, _amount));
     uint256 n = proposals_.length;
 
-    initVoting(n);
+    super.initVoting(n);
     return n;
-  }
-
-  /// Determine if proposal still votable or not. In treasurer proposals
-  /// has no any limitation thus each vote is votable until it completes.
-  function isVotable(uint256)
-    internal
-    view
-    returns(bool)
-  {
-    return true;
   }
 
   function isAccepted(uint256, uint256 _votes, uint256 _totalVotes)

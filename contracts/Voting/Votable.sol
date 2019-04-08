@@ -149,10 +149,15 @@ contract Votable {
 
   function proposalAccepted(uint256 _n) internal;
 
-  function isVotable(uint256 _n)
+  /// Determine if proposal still votable or not. In treasurer proposals
+  /// has no any limitation thus each vote is votable until it completes.
+  function isVotable(uint256)
     internal
     view
-  returns(bool);
+    returns(bool)
+  {
+    return true;
+  }
 
   function isAccepted(uint256 _n, uint256 _votes, uint256 _totalPower)
     internal
