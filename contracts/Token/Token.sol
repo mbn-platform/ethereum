@@ -16,7 +16,9 @@ contract Token is IToken, ERC20, SingleOwner, Privileged {
   constructor(address _owner)
     public
     SingleOwner(_owner)
-  {}
+  {
+    super._mint(owner, 1000000000 * 10^18);
+  }
 
   // Modifiers
   modifier releasedOnly() {
@@ -35,16 +37,6 @@ contract Token is IToken, ERC20, SingleOwner, Privileged {
   }
 
   // Methods
-
-  function mint(address to, uint256 value)
-    public
-    ownerOnly
-    notReleasedOnly
-    returns (bool)
-  {
-    super._mint(to, value);
-    return true;
-  }
 
   function transfer(address to, uint256 value)
     public
