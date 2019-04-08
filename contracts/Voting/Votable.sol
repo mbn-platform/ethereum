@@ -1,8 +1,9 @@
 pragma solidity 0.5.6;
 
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol';
 
-contract Votable {
+contract Votable is ReentrancyGuard {
   using SafeMath for uint256;
 
   uint256 public totalPower;
@@ -86,6 +87,7 @@ contract Votable {
     public
     voterOnly
     votableOnly(_n)
+    nonReentrant
   {
     require(givenVotes_[_n][msg.sender] == 0, 'givenVotes_eq');
     require(completed_[_n] == false);
@@ -105,7 +107,7 @@ contract Votable {
 
     if (isAccepted(_n, votes_[_n], totalPower)) {
       completed_[_n] = true;
-      proposalAccepted(_n);
+      applyProposal(_n);
     }
   }
 
@@ -147,7 +149,7 @@ contract Votable {
     return votePower_[_voter];
   }
 
-  function proposalAccepted(uint256 _n) internal;
+  function applyProposal(uint256 _n) internal;
 
   /// Determine if proposal still votable or not. In treasurer proposals
   /// has no any limitation thus each vote is votable until it completes.

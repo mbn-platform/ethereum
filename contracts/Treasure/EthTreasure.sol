@@ -49,7 +49,7 @@ contract EthTreasure is Votable, SingleOwner {
     return _votes >= _totalVotes / 2 + 1;
   }
 
-  function proposalAccepted(uint256 _n)
+  function applyProposal(uint256 _n)
     internal
   {
     Proposal storage proposal = proposals_[_n - 1];
