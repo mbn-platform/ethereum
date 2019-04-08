@@ -39,16 +39,6 @@ contract TokenManager is Votable, SingleOwner {
     return n;
   }
 
-  /// Determine if proposal still votable or not. In treasurer proposals
-  /// has no any limitation thus each vote is votable until it completes.
-  function isVotable(uint256)
-    internal
-    view
-    returns(bool)
-  {
-    return true; // FIXME
-  }
-
   function isAccepted(uint256, uint256 _votes, uint256 _totalVotes)
     internal
     view
