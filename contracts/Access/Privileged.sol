@@ -9,7 +9,7 @@ contract Privileged {
     view
     returns(bool)
   {
-    return privileged[msg.sender];
+    return privileged[_addr];
   }
 
   function _setPrivileged(address _addr)
