@@ -23,7 +23,7 @@ module.exports = ({describe, use, it}) => {
 
       const token = await createDeployment(web3, contract)
       .deploy(main)
-      .send(main);
+      .send({from: main});
 
       return next({
         ...ctx,
@@ -31,49 +31,60 @@ module.exports = ({describe, use, it}) => {
       });
     });
 
-    describe('#mint()', () => {
-      use(snapshot);
-
+    describe('#setPrivileged', () => {
       it(
-        'Should increase balanceOf',
+        'Should allow address to transfer tokens before release',
+        snapshot,
         async ({token, accounts}) => {
           const {main, member1} = accounts;
-          const {mint, balanceOf} = token.methods;
+          const {setPrivileged, transfer, balanceOf} = token.methods;
 
-          await mint(member1, '10').send(main);
-          const balance = await balanceOf(member1).call();
+          await setPrivileged(main).send({from: main});
+          await transfer(member1, '1000').send({from: main});
+          const balance = await balanceOf(member1)
+          .call();
 
-          should(balance).be.equal('10');
+          should(balance).be.equal('1000');
         }
       );
+    });
 
+    describe('#setUnprivileged', () => {
       it(
-        'Should increase total supply',
+        'Should decline address to transfer tokens before release',
+        snapshot,
         async ({token, accounts}) => {
           const {main, member1} = accounts;
-          const {mint, totalSupply} = token.methods;
+          const {setPrivileged, setUnprivileged, transfer, balanceOf} = token.methods;
 
-          await mint(member1, '10').send(main);
-          const balance = await totalSupply().call();
+          await setPrivileged(main).send({from: main});
+          // Ensure setPrivileged set
+          await transfer(member1, '1000').send({from: main});
+          const balance = await balanceOf(member1).call();
+          should(balance).be.equal('1000');
 
-          should(balance).be.equal('20');
+          // Check privelegy unset correctly
+          await setUnprivileged(main).send({from: main});
+          await throws(
+            /released_or_privileged_only/,
+            () => transfer(member1, '1000').send({from: main}),
+          );
         }
       );
     });
 
     describe('#release()', () => {
-      use(snapshot);
-
       it(
         'Should change #isReleased() value',
+        snapshot,
         async ({token, accounts}) => {
-          const [main] = accounts;
+          const {main} = accounts;
           const {isReleased, release} = token.methods;
 
           const before = await isReleased().call();
           should(before).be.equal(false);
 
-          await release().send(main);
+          await release().send({from: main});
 
           const after = await isReleased().call();
           should(after).be.equal(true);
@@ -81,22 +92,29 @@ module.exports = ({describe, use, it}) => {
       );
 
       it(
-        'Should deprecate minting',
+        'Should set #releasedDate value',
+        snapshot,
         async ({token, accounts}) => {
-          const {main, member1} = accounts;
-          const {isReleased, mint} = token.methods;
+          const {main} = accounts;
+          const {releaseDate, release} = token.methods;
 
-          const before = await isReleased().call();
-          should(before).be.equal(true);
+          const before = await releaseDate().call();
+          should(before).be.equal('0');
 
-          const caught = await throws(
-            /not_released_only/,
-            () => mint(member1, 1).send({from:main})
-          );
+          await release().send({from: main});
 
-          should(caught).be.equal(true);
+          const after = await releaseDate().call();
+          should(parseInt(after, 10)).be.greaterThan(0);
         }
       );
+
+      // it(
+      //   'Should allow transfers to anyone',
+      //   snapshot,
+      //   async ({token, accounts}) => {
+      //     const {main}
+      //   }
+      // )
     });
   });
 };
