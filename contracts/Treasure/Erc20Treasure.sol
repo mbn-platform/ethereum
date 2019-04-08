@@ -51,7 +51,7 @@ contract Erc20Treasure is Votable, SingleOwner {
     internal
   {
     Proposal storage proposal = proposals_[_n - 1];
-    require(proposal.amount > address(this).balance, 'amount_enough');
+    require(proposal.amount > token.balanceOf(address(this)), 'amount_enough');
 
     require(token.transfer(proposal.to, proposal.amount), 'transferred');
 
