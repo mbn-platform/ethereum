@@ -53,7 +53,7 @@ contract EthTreasure is Votable, SingleOwner {
     internal
   {
     Proposal storage proposal = proposals_[_n - 1];
-    require(proposal.amount < address(this).balance, 'amount_enough');
+    require(proposal.amount <= address(this).balance, 'amount_enough');
 
     proposal.to.transfer(proposal.amount);
 
