@@ -65,7 +65,7 @@ contract Token is IToken, ERC20, SingleOwner, Privileged {
   function increaseAllowance(address spender, uint addedValue)
     public
     releasedOnly
-    returns (bool success)
+    returns (bool)
   {
     return super.increaseAllowance(spender, addedValue);
   }
@@ -73,7 +73,7 @@ contract Token is IToken, ERC20, SingleOwner, Privileged {
   function decreaseAllowance(address spender, uint subtractedValue)
     public
     releasedOnly
-    returns (bool success)
+    returns (bool)
   {
     return super.decreaseAllowance(spender, subtractedValue);
   }
