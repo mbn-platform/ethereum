@@ -27,7 +27,7 @@ contract Erc20Treasure is Votable, SingleOwner {
   event Transferred(address receiver, uint256 amount);
 
   // Methods
-  function proposeTransfer(address payable _to, uint256 _amount)
+  function proposeTransfer(address _to, uint256 _amount)
     public
     voterOnly
     returns(uint256)
