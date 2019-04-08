@@ -1,10 +1,12 @@
 pragma solidity 0.5.6;
 
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+
 import './IToken.sol';
 import '../Ownership/SingleOwner.sol';
 import '../Access/Privileged.sol';
 
-contract Token is IToken, SingleOwner, Privileged {
+contract Token is IToken, ERC20, SingleOwner, Privileged {
   string public name = 'Membrana';
   string public symbol = 'MBN';
   uint8 public decimals = 18;
@@ -40,7 +42,7 @@ contract Token is IToken, SingleOwner, Privileged {
     notReleasedOnly
     returns (bool)
   {
-    _mint(to, value);
+    super._mint(to, value);
     return true;
   }
 
