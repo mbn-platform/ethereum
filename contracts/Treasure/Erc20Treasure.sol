@@ -5,7 +5,7 @@ import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
 import '../Voting/Votable.sol';
 import '../Ownership/SingleOwner.sol';
 
-contract TokenManager is Votable, SingleOwner {
+contract Erc20Treasure is Votable, SingleOwner {
   struct Proposal {
     address to;
     uint256 amount;
