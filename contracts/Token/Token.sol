@@ -17,7 +17,7 @@ contract Token is IToken, ERC20, SingleOwner, Privileged {
     public
     SingleOwner(_owner)
   {
-    super._mint(owner, 1000000000 * 10^18);
+    super._mint(owner, 1000000000 * 10 ** 18);
   }
 
   // Modifiers
