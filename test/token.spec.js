@@ -31,7 +31,7 @@ module.exports = ({describe, use, it}) => {
       });
     });
 
-    describe('#setPrivileged', () => {
+    describe('#setPrivileged()', () => {
       it(
         'Should allow address to transfer tokens before release',
         snapshot,
@@ -49,7 +49,7 @@ module.exports = ({describe, use, it}) => {
       );
     });
 
-    describe('#setUnprivileged', () => {
+    describe('#setUnprivileged()', () => {
       it(
         'Should decline address to transfer tokens before release',
         snapshot,

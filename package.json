@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@testup/cli": "^0.2.0",
+    "@testup/cli": "^0.4.0",
     "@testup/console-reporter": "^0.1.1",
     "@testup/core": "^0.1.2",
     "chalk": "^2.4.1",
@@ -15,5 +15,8 @@
   },
   "scripts": {
     "test": "testup run test/*.spec.js"
+  },
+  "dependencies": {
+    "web3-eth-abi": "^1.0.0-beta.52"
   }
 }

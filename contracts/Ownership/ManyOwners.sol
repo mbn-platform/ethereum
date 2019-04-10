@@ -55,7 +55,14 @@ contract ManyOwners is IOwnable {
     ownerOnly
   {
     require(_owner != address(0), 'owner_req');
+    require(owners_[_owner], 'owner_exists');
 
+    _removeOwner(_owner);
+  }
+
+  function _removeOwner(address _owner)
+    internal
+  {
     owners_[_owner] = false;
 
     emit OwnerRemoved(_owner);

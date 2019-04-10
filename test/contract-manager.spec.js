@@ -76,7 +76,7 @@ module.exports = ({describe, use, it}) => {
       );
     });
 
-    describe('#addVoter() && #removeVoter())', () => {
+    describe('#addVoter() && #removeVoter()', () => {
       use(snapshot);
 
       it(
@@ -144,7 +144,7 @@ module.exports = ({describe, use, it}) => {
       );
     });
 
-    describe('#proposeTransfer() and #vote', () => {
+    describe('#proposeTransfer() and #vote()', () => {
       use(snapshot);
 
       it(
