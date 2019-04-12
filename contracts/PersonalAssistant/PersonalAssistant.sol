@@ -3,9 +3,9 @@ pragma solidity 0.5.6;
 import 'openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol';
 
 import '../Ownership/ManyOwners.sol';
-import '../Ownership/Minions.sol';
+import '../Ownership/ManyMembers.sol';
 
-contract PersonalAssistant is ManyOwners, Minions, ReentrancyGuard {
+contract PersonalAssistant is ManyOwners, ManyMembers, ReentrancyGuard {
   bool public isLocked;
 
   constructor(address _owner)
@@ -54,7 +54,7 @@ contract PersonalAssistant is ManyOwners, Minions, ReentrancyGuard {
   function write(address _target, uint256 _value, bytes memory _data)
     public
     payable
-    ownerOrMinionOnly
+    ownerOrMemberOnly
     nonReentrant
     unlockedOnly
     returns(bytes memory)
