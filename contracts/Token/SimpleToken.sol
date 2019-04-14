@@ -4,7 +4,7 @@ import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
 import './ISimpleToken.sol';
 
-contract SimpleToken is IToken, ERC20 {
+contract SimpleToken is ISimpleToken, ERC20 {
   string public name = 'SimpleToken';
   string public symbol = 'STKN';
   uint8 public decimals = 18;
