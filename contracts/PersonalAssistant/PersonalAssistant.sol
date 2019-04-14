@@ -60,9 +60,25 @@ contract PersonalAssistant is ManyOwners, ManyMembers, ReentrancyGuard {
     returns(bytes memory)
   {
     (bool success, bytes memory returndata) = _target.call.value(_value)(_data);
-    require(success);
+    require(success, 'call_succeded');
 
     return returndata;
+  }
+
+  function writeExpect(address _target, bytes memory _data, bytes32 _expectation)
+    public
+    returns(bytes memory)
+  {
+    return writeExpect(_target, 0, _data, _expectation);
+  }
+
+  function writeExpect(address _target, uint _value, bytes memory _data, bytes32 _expectation)
+    public
+    returns(bytes memory)
+  {
+    bytes memory result = write(_target, _value, _data);
+    require(keccak256(result) == _expectation, 'expectation');
+    return result;
   }
 
   /// Read contract state method using this contract as sender

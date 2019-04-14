@@ -6,7 +6,7 @@ const {throws} = require('./util/helpers');
 
 const contracts = {
   assistant: require('../dist/PersonalAssistant.js'),
-  token: require('../dist/Token.js'),
+  token: require('../dist/SimpleToken.js'),
 };
 
 module.exports = ({describe, use, it}) => {
@@ -64,45 +64,49 @@ module.exports = ({describe, use, it}) => {
         'Should write changes with owner account',
         snapshot,
         async ({token, assistant, accounts}) => {
-          const {main, member1} = accounts;
-          const {setPrivileged, isPrivileged} = token.methods;
-          const {write, addMinion} = assistant.methods;
+          const {main, member2} = accounts;
+          const {transfer, balanceOf} = token.methods;
+          const {write} = assistant.methods;
 
-          await addMinion(member1).send({from: main});
+          const before = await balanceOf(member2).call();
+          should(before).be.equal('0');
 
-          const before = await isPrivileged(assistant.options.address)
-          .call();
-          should(before).be.equal(false);
+          const result = await write(
+            token.options.address,
+            transfer(member2, '100').encodeABI(),
+          ).send({from: main});
 
-          await write(
-            token.options.address, setPrivileged(assistant.options.address).encodeABI(),
-          ).send({from: member1});
+          should(result.status).be.equal(true);
 
-          const after = await isPrivileged(assistant.options.address)
-          .call();
-          should(after).be.equal(true);
+          const after = await balanceOf(member2).call();
+          should(after).be.equal('100');
         }
       );
 
       it(
-        'Should write changes with minion account',
+        'Should write changes with member account',
         snapshot,
         async ({token, assistant, accounts}) => {
-          const {main} = accounts;
-          const {setPrivileged, isPrivileged} = token.methods;
-          const {write} = assistant.methods;
+          const {main, member1, member2} = accounts;
+          const {transfer, balanceOf} = token.methods;
+          const {write, addMember} = assistant.methods;
 
-          const before = await isPrivileged(assistant.options.address)
-          .call();
-          should(before).be.equal(false);
+          const before = await balanceOf(member2).call();
+          should(before).be.equal('0');
 
-          await write(
-            token.options.address, setPrivileged(assistant.options.address).encodeABI(),
-          ).send({from: main});
+          await addMember(member1).send({
+            from: main,
+          });
 
-          const after = await isPrivileged(assistant.options.address)
-          .call();
-          should(after).be.equal(true);
+          const result = await write(
+            token.options.address,
+            transfer(member2, '100').encodeABI(),
+          ).send({from: member1});
+
+          should(result.status).be.equal(true);
+
+          const after = await balanceOf(member2).call();
+          should(after).be.equal('100');
         }
       );
 
@@ -111,13 +115,14 @@ module.exports = ({describe, use, it}) => {
         snapshot,
         async ({token, assistant, accounts}) => {
           const {member2} = accounts;
-          const {setPrivileged} = token.methods;
+          const {transfer} = token.methods;
           const {write} = assistant.methods;
 
           await throws(
-            /owner_or_minion_access/,
+            /owner_or_member_access/,
             () => write(
-              token.options.address, setPrivileged(assistant.options.address).encodeABI(),
+              token.options.address,
+              transfer(assistant.options.address, '100').encodeABI(),
             ).send({from: member2}),
           );
         }
@@ -128,7 +133,7 @@ module.exports = ({describe, use, it}) => {
         snapshot,
         async ({token, assistant, accounts}) => {
           const {main} = accounts;
-          const {setPrivileged} = token.methods;
+          const {transfer} = token.methods;
           const {write, lock} = assistant.methods;
 
           await lock().send({
@@ -138,7 +143,55 @@ module.exports = ({describe, use, it}) => {
           await throws(
             /unlocked_only/,
             () => write(
-              token.options.address, setPrivileged(assistant.options.address).encodeABI(),
+              token.options.address, transfer(assistant.options.address, '100').encodeABI(),
+            ).send({from: main}),
+          );
+        }
+      );
+    });
+
+    describe('#writeExpect()', () => {
+      it('Should succeed when output matches',
+        snapshot,
+        async ({web3, token, assistant, accounts}) => {
+          const {main, member2} = accounts;
+          const {transfer, balanceOf} = token.methods;
+          const {writeExpect} = assistant.methods;
+
+          const before = await balanceOf(member2).call();
+          should(before).be.equal('0');
+
+          const result = await writeExpect(
+            token.options.address,
+            transfer(member2, '100').encodeABI(),
+            web3.utils.keccak256(
+              web3.eth.abi.encodeParameter('bool', true)
+            )
+          ).send({from: main});
+
+          should(result.status).be.equal(true);
+
+          const after = await balanceOf(member2).call();
+          should(after).be.equal('100');
+        }
+      );
+
+      it(
+        'Should fail when output mismatches',
+        snapshot,
+        async ({web3, token, assistant, accounts}) => {
+          const {main, member2} = accounts;
+          const {transfer} = token.methods;
+          const {writeExpect} = assistant.methods;
+
+          await throws(
+            /expectation/,
+            () => writeExpect(
+              token.options.address,
+              transfer(member2, '100').encodeABI(),
+              web3.utils.keccak256(
+                web3.eth.abi.encodeParameter('bool', false)
+              )
             ).send({from: main}),
           );
         }
