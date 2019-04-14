@@ -2,6 +2,17 @@ const Web3 = require('web3');
 const ganache = require('ganache-cli');
 const dayjs = require('dayjs');
 
+const WEB3 = Symbol('web3');
+const getWeb3 = (ctx) => ctx[WEB3];
+const useWeb3 = (prop = 'web3') => (ctx, next) => {
+  return next({
+    ...ctx,
+    [prop]: getWeb3(ctx),
+  });
+};
+exports.getWeb3 = getWeb3;
+exports.useWeb3 = useWeb3;
+
 exports.mountWeb3 = ({
   totalAccounts = 100,
   defaultBalance = 1000,
@@ -21,7 +32,7 @@ exports.mountWeb3 = ({
   try {
     await next({
       ...ctx,
-      web3,
+      [WEB3]: web3,
     });
   }
   finally {
@@ -38,7 +49,7 @@ exports.mountWeb3 = ({
   }
 };
 exports.mountAccounts = (layout = null) => async function mountAccounts(ctx, next) {
-  const {web3} = ctx;
+  const web3 = getWeb3(ctx);
 
   let accounts = await web3.eth.getAccounts();
   if (layout) {
@@ -51,7 +62,20 @@ exports.mountAccounts = (layout = null) => async function mountAccounts(ctx, nex
   return next({...ctx, accounts});
 };
 
-exports.mountEvm = (prop = 'web3') => async function mountEvm({[prop]: web3, ...ctx}, next) {
+const EVM = Symbol('evm');
+const getEvm = (ctx) => ctx[EVM];
+const useEvm = (prop = 'evm') => (ctx, next) => {
+  return next({
+    ...ctx,
+    [prop]: getEvm(ctx),
+  });
+};
+
+exports.getEvm = getEvm;
+exports.useEvm = useEvm;
+
+exports.mountEvm = () => async function mountEvm(ctx, next) {
+  const web3 = getWeb3(ctx);
   const snapshots = [];
 
   function snapshot() {
@@ -70,13 +94,25 @@ exports.mountEvm = (prop = 'web3') => async function mountEvm({[prop]: web3, ...
   }
   await next({
     ...ctx,
-    [prop]: web3,
-    evm: {snapshot, rollback, increaseTime},
+    [EVM]: {snapshot, rollback, increaseTime},
   });
 };
 
-exports.mountWeb3Utils = (prop = 'web3') => async (ctx, next) => {
-  const web3 = ctx[prop];
+const UTILS = Symbol('utils');
+const getUtils = (ctx) => ctx[UTILS];
+
+const useUtils = (prop = 'utils') => (ctx, next) => {
+  return next({
+    ...ctx,
+    [prop]: getUtils(ctx),
+  });
+};
+
+exports.getUtils = getUtils;
+exports.useUtils = useUtils;
+
+exports.mountWeb3Utils = () => async (ctx, next) => {
+  const web3 = getWeb3(ctx);
 
   const utils = {
     toWei(value, unit = 'ether') {
@@ -93,7 +129,7 @@ exports.mountWeb3Utils = (prop = 'web3') => async (ctx, next) => {
 
   return next({
     ...ctx,
-    utils,
+    [UTILS]: utils,
   });
 };
 
@@ -115,7 +151,9 @@ function evmCall(web3, method, params = []) {
   });
 }
 
-exports.snapshot = async ({evm}, next) => {
+exports.snapshot = async (ctx, next) => {
+  const evm = getEvm(ctx);
+
   await evm.snapshot();
   try {
     await next();

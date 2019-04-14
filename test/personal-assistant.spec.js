@@ -1,6 +1,6 @@
 const should = require('should');
 
-const {mountWeb3, mountEvm, mountAccounts, snapshot} = require('./util/web3');
+const {getWeb3, mountWeb3, mountEvm, mountAccounts, snapshot} = require('./util/web3');
 const {createDeployment} = require('../util/web3');
 const {throws} = require('./util/helpers');
 
@@ -22,7 +22,8 @@ module.exports = ({describe, use, it}) => {
     }));
 
     use(async (ctx, next) => {
-      const {web3, accounts} = ctx;
+      const web3 = getWeb3(ctx);
+      const {accounts} = ctx;
       const {main} = accounts;
 
       const assistant = await createDeployment(web3, contracts.assistant)
@@ -44,7 +45,8 @@ module.exports = ({describe, use, it}) => {
       it(
         'Should read data',
         snapshot,
-        async ({web3, token, assistant, accounts}) => {
+        async ({token, assistant, accounts, ...ctx}) => {
+          const web3 = getWeb3(ctx);
           const {main} = accounts;
           const {balanceOf} = token.methods;
           const {read} = assistant.methods;
@@ -153,7 +155,8 @@ module.exports = ({describe, use, it}) => {
     describe('#writeExpect()', () => {
       it('Should succeed when output matches',
         snapshot,
-        async ({web3, token, assistant, accounts}) => {
+        async ({token, assistant, accounts, ...ctx}) => {
+          const web3 = getWeb3(ctx);
           const {main, member2} = accounts;
           const {transfer, balanceOf} = token.methods;
           const {writeExpect} = assistant.methods;
@@ -179,7 +182,8 @@ module.exports = ({describe, use, it}) => {
       it(
         'Should fail when output mismatches',
         snapshot,
-        async ({web3, token, assistant, accounts}) => {
+        async ({token, assistant, accounts, ...ctx}) => {
+          const web3 = getWeb3(ctx);
           const {main, member2} = accounts;
           const {transfer} = token.methods;
           const {writeExpect} = assistant.methods;

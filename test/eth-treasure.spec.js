@@ -1,6 +1,6 @@
 const should = require('should');
 
-const {mountWeb3, mountWeb3Utils, mountEvm, mountAccounts, snapshot} = require('./util/web3');
+const {getWeb3, getUtils, mountWeb3, mountWeb3Utils, mountEvm, mountAccounts, snapshot} = require('./util/web3');
 const {createDeployment} = require('../util/web3');
 
 const contract = require('../dist/EthTreasure');
@@ -25,13 +25,15 @@ module.exports = ({describe, use, it}) => {
     }));
 
     use(async (ctx, next) => {
-      const {web3, accounts} = ctx;
+      const web3 = getWeb3(ctx);
+      const {toWei} = getUtils(ctx);
+      const {accounts} = ctx;
       const {main} = accounts;
       const treasure = await createDeployment(web3, contract)
       .deploy(main)
       .send({
         from: main,
-        value: web3.utils.toWei('100', 'ether'),
+        value: toWei('100', 'ether'),
       });
 
       const {addVoter} = treasure.methods;
@@ -50,7 +52,10 @@ module.exports = ({describe, use, it}) => {
     describe('#constructor()', () => {
       it(
         'Should be payable',
-        async ({treasure, web3, utils:{fromWei}}) => {
+        async ({treasure, ...ctx}) => {
+          const web3 = getWeb3(ctx);
+          const {fromWei} = getUtils(ctx);
+
           const balance = await web3.eth.getBalance(treasure.options.address);
 
           should(fromWei(balance, 'ether')).be.equal('100');
@@ -131,7 +136,8 @@ module.exports = ({describe, use, it}) => {
 
       it(
         'Should set one vote at creation',
-        async ({utils:{toWei}, treasure, accounts}) => {
+        async ({treasure, accounts, ...ctx}) => {
+          const {toWei} = getUtils(ctx);
           const {member1, member4} = accounts;
           const {proposeTransfer, votesOf} = treasure.methods;
           const amount = toWei('10', 'ether');
@@ -161,7 +167,8 @@ module.exports = ({describe, use, it}) => {
 
       it(
         'Should transfer when quorum reached',
-        async ({treasure, accounts, utils:{getBalance}}) => {
+        async ({treasure, accounts, ...ctx}) => {
+          const {getBalance} = getUtils(ctx);
           const {member3, member4} = accounts;
           const {vote, votesOf, isCompleted} = treasure.methods;
 

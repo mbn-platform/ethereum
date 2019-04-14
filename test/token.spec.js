@@ -1,6 +1,6 @@
 const should = require('should');
 
-const {mountWeb3, mountEvm, mountAccounts, snapshot} = require('./util/web3');
+const {getWeb3, mountWeb3, mountEvm, mountAccounts, snapshot} = require('./util/web3');
 const {createDeployment} = require('../util/web3');
 const {throws} = require('./util/helpers');
 
@@ -18,7 +18,8 @@ module.exports = ({describe, use, it}) => {
     }));
 
     use(async (ctx, next) => {
-      const {web3, accounts} = ctx;
+      const web3 = getWeb3(ctx);
+      const {accounts} = ctx;
       const {main} = accounts;
 
       const token = await createDeployment(web3, contract)
