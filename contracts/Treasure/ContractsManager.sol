@@ -1,12 +1,12 @@
 pragma solidity 0.5.6;
 
 import '../Ownership/SingleOwner.sol';
-import './VotableCalls/SingleTargetCalls.sol';
+import './VotableCalls/ManyTargetsCalls.sol';
 
-contract ContractManager is SingleTargetCalls, SingleOwner {
+contract ContractsManager is ManyTargetsCalls, SingleOwner {
   constructor(address _owner, address _target)
     public
     SingleOwner(_owner)
-    SingleTargetCalls(_target)
+    ManyTargetsCalls()
   {}
 }

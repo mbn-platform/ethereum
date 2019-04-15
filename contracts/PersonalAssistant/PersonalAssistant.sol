@@ -60,7 +60,7 @@ contract PersonalAssistant is ManyOwners, ManyMembers, ReentrancyGuard {
     returns(bytes memory)
   {
     (bool success, bytes memory returndata) = _target.call.value(_value)(_data);
-    require(success, 'call_succeded');
+    require(success, 'call_succeed');
 
     return returndata;
   }
@@ -77,7 +77,8 @@ contract PersonalAssistant is ManyOwners, ManyMembers, ReentrancyGuard {
     returns(bytes memory)
   {
     bytes memory result = write(_target, _value, _data);
-    require(keccak256(result) == _expectation, 'expectation');
+    require(keccak256(result) == _expectation, 'expectation_fulfilled');
+
     return result;
   }
 
